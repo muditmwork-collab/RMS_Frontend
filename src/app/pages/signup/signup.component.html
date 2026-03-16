@@ -141,7 +141,7 @@
                             class="w-full pl-12 pr-12 py-3 text-sm text-foreground bg-background border border-input rounded-xl placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all duration-200" />
                         <button type="button" (click)="togglePasswordVisibility()"
                             class="absolute inset-y-0 right-0 pr-4 flex items-center text-muted-foreground hover:text-foreground transition-colors">
-                            @if (!showPassword) {
+                            <span *ngIf="!showPassword">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                                 stroke="currentColor" class="w-5 h-5">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -149,18 +149,18 @@
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                             </svg>
-                            } @else {
+                            </span>
+                            <span *ngIf="showPassword">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                                 stroke="currentColor" class="w-5 h-5">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
                             </svg>
-                            }
+                            </span>
                         </button>
                     </div>
                     <!-- Password strength meter -->
-                    @if (password) {
-                    <div class="mt-2">
+                    <div *ngIf="password" class="mt-2">
                         <div class="flex gap-1">
                             <div class="h-1 flex-1 rounded-full transition-all duration-300"
                                 [class]="passwordStrength === 'weak' ? 'bg-destructive' : passwordStrength === 'medium' ? 'bg-primary' : 'bg-green-500'">
@@ -177,7 +177,6 @@
                             password' : 'Strong password' }}
                         </p>
                     </div>
-                    }
                 </div>
 
                 <!-- Confirm Password -->
@@ -198,7 +197,7 @@
                             class="w-full pl-12 pr-12 py-3 text-sm text-foreground bg-background border border-input rounded-xl placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all duration-200" />
                         <button type="button" (click)="toggleConfirmPasswordVisibility()"
                             class="absolute inset-y-0 right-0 pr-4 flex items-center text-muted-foreground hover:text-foreground transition-colors">
-                            @if (!showConfirmPassword) {
+                            <span *ngIf="!showConfirmPassword">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                                 stroke="currentColor" class="w-5 h-5">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -206,21 +205,18 @@
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                             </svg>
-                            } @else {
+                            </span>
+                            <span *ngIf="showConfirmPassword">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                                 stroke="currentColor" class="w-5 h-5">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
                             </svg>
-                            }
+                            </span>
                         </button>
                     </div>
-                    @if (confirmPassword && !passwordsMatch) {
-                    <p class="text-xs text-destructive mt-1">Passwords do not match</p>
-                    }
-                    @if (passwordsMatch) {
-                    <p class="text-xs text-green-500 mt-1">✓ Passwords match</p>
-                    }
+                    <p *ngIf="confirmPassword && !passwordsMatch" class="text-xs text-destructive mt-1">Passwords do not match</p>
+                    <p *ngIf="passwordsMatch" class="text-xs text-green-500 mt-1">✓ Passwords match</p>
                 </div>
 
                 <!-- Terms -->

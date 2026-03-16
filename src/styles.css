@@ -1,5 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .border-border {
+    border-color: var(--border);
+  }
+  .outline-ring\/50 {
+    outline-color: color-mix(in srgb, var(--ring) 50%, transparent);
+  }
+}
 
 @custom-variant dark (&:is(.dark *));
 
