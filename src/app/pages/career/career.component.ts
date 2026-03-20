@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { HeroService } from '../../hero.service';
 
 @Component({
   selector: 'app-career',
@@ -10,20 +11,43 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './career.component.html',
   styleUrls: ['./career.component.css']
 })
-export class CareerComponent {
-  jobs = [
-    { id: 1, title: 'Frontend Developer', company: 'TechNova', location: 'Remote', type: 'Full-time' },
-    { id: 2, title: 'Backend Engineer', company: 'AlphaTech', location: 'New York, NY', type: 'Full-time' },
-    { id: 3, title: 'Product Manager', company: 'TechNova', location: 'Remote', type: 'Full-time' },
-    { id: 4, title: 'Data Scientist', company: 'DataCorp', location: 'San Francisco, CA', type: 'Contract' },
-    { id: 5, title: 'DevOps Engineer', company: 'CloudSys', location: 'Seattle, WA', type: 'Full-time' },
-    { id: 6, title: 'UI/UX Designer', company: 'AlphaTech', location: 'Remote', type: 'Part-time' },
-    { id: 7, title: 'Full Stack Developer', company: 'WebSolutions', location: 'Austin, TX', type: 'Full-time' },
-    { id: 8, title: 'Machine Learning Engineer', company: 'DataCorp', location: 'San Francisco, CA', type: 'Full-time' },
-  ];
-
-  filteredJobs = [...this.jobs];
+export class CareerComponent implements OnInit {
+  jobs: any[] = [];
+  filteredJobs: any[] = [];
   searchQuery = '';
+  loading = true;
+
+  constructor(private heroService: HeroService) { }
+
+  ngOnInit() {
+    this.fetchJobs();
+  }
+
+  fetchJobs() {
+    this.loading = true;
+    this.heroService.showAllJobRequisition()
+      .then((response: any) => {
+        const jobData = this.heroService.xmltojson(response, 'job_requisition');
+        if (jobData) {
+          const rawJobs = Array.isArray(jobData) ? jobData : [jobData];
+          this.jobs = rawJobs
+            .filter((j: any) => j.status?.toLowerCase() === 'active')
+            .map((j: any) => ({
+              id: j.jr_id || '',
+              title: j.job_title || 'Untitled Position',
+              company: j.department || 'Adnate IT Solutions',
+              location: j.location || 'Remote',
+              type: j.status || 'Full-time'
+            }));
+          this.filteredJobs = [...this.jobs];
+        }
+        this.loading = false;
+      })
+      .catch((err: any) => {
+        console.error('Error fetching jobs:', err);
+        this.loading = false;
+      });
+  }
 
   filterJobs() {
     const query = this.searchQuery.toLowerCase();

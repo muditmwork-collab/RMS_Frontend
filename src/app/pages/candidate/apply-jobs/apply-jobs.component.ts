@@ -42,13 +42,13 @@ export class ApplyJobsComponent implements OnInit {
               title: j.job_title,
               company: 'RMS',
               location: j.location,
-              type: 'Full-time',
+              type: j.status || 'Active', // Mapping status here
               department: j.department,
               salary: j.salary_range || 'Competitive',
               posted: this.calculateTimeAgo(j.created_at),
               description: j.job_description
             };
-          }).filter((j: any) => j.id); // Filter out any empty mappings
+          }).filter((j: any) => j.id && j.type?.toLowerCase() === 'active'); // Filter for Active marks
 
           this.filteredJobs = [...this.jobs];
         }

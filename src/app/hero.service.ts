@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 declare const $: any;
 
 @Injectable({
@@ -6,7 +7,57 @@ declare const $: any;
 })
 export class HeroService {
 
-  constructor() { }
+  constructor(private router: Router) { }
+
+  /**
+   * Logout from Cordys SSO and clear session.
+   */
+  logoutSSO(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (typeof $ !== 'undefined' && $.cordys?.authentication?.sso) {
+        $.cordys.authentication.sso.logout()
+          .done(() => {
+            sessionStorage.clear();
+            localStorage.clear();
+            resolve();
+          })
+          .fail(() => reject(new Error('Logout failed.')));
+      } else {
+        sessionStorage.clear();
+        localStorage.clear();
+        resolve();
+      }
+    });
+  }
+
+  /**
+   * Helper to logout and immediately redirect to login page.
+   */
+  async logoutAndRedirect(redirectPath: string = '/login'): Promise<void> {
+    try {
+      await this.logoutSSO();
+    } catch (e) {
+      console.error('Logout error, forcing redirect:', e);
+    } finally {
+      this.router.navigate([redirectPath]);
+    }
+  }
+
+  /**
+   * Generically authenticate against Cordys SSO.
+   */
+  authenticateSSO(username: string, password: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (typeof $ !== 'undefined' && $.cordys?.authentication?.sso) {
+        $.cordys.authentication.sso.authenticate(username, password)
+          .done(() => resolve())
+          .fail(() => reject(new Error('Platform authentication failed.')));
+      } else {
+        reject(new Error('SSO configuration not available.'));
+      }
+    });
+  }
+
   xmltojson(resp:any, key:any){
     try {
       if (!resp) { return null; }
@@ -85,15 +136,15 @@ export class HeroService {
       cc: {
         address: {
           displayName: ccDisplayName || '',
-          emailAddress: ccEmail || 'muditmwork@gmail.com'
+          emailAddress: ccEmail || ''
         }
       },
       subject: subject || '',
       body: normalizedBody,
       from: {
-        displayName: fromDisplayName || 'Library',
-        emailAddress: fromEmail || 'noreply@library.example',
-        replyTo: replyTo || (fromEmail || 'noreply@library.example')
+        displayName: fromDisplayName || 'RMS Notification',
+        emailAddress: fromEmail || 'no-reply@rms-system.com',
+        replyTo: replyTo || (fromEmail || 'no-reply@rms-system.com')
       }
     };
 
@@ -190,46 +241,62 @@ export class HeroService {
     return this.ajax('UpdateJob_requisition', 'http://schemas.cordys.com/RMS_DB_Metadata', payload);
   }
 
-  showAllJobRequisition(): Promise<any> {
-    return this.ajax('ShowAllJobRequisition', 'http://schemas.cordys.com/RMS_DB_Metadata', {
-      preserveSpace: 'no',
-      qAccess: '0',
-      qValues: ''
-    });
-  }
-
-  updateCandidate(candidateId: string, updatedFields: any): Promise<any> {
-    const payload = {
+  /**
+   * Create a record in the candidate_login table.
+   */
+  createCandidateLogin(name: string, email: string, password_hash: string, candidate_id?: string): Promise<any> {
+    const payload: any = {
+      '@reply': 'yes',
+      '@commandUpdate': 'no',
+      '@preserveSpace': 'no',
+      '@batchUpdate': 'no',
       tuple: {
-        old: {
-          candidate: {
-            candidate_id: candidateId
-          }
-        },
         new: {
-          candidate: {
-            ...updatedFields
+          candidate_login: {
+            '@qAccess': '0',
+            '@qConstraint': '0',
+            '@qInit': '0',
+            '@qValues': '',
+            ...( (candidate_id !== undefined && candidate_id !== null) ? { candidate_id: candidate_id } : {} ),
+            name: name,
+            email: email,
+            password_hash: password_hash,
+            account_status: 'ACTIVE',
+            created_by: email
           }
         }
       }
     };
-    return this.ajax('UpdateCandidate', 'http://schemas.cordys.com/RMS_DB_Metadata', payload);
+    return this.ajax('UpdateCandidate_login', 'http://schemas.cordys.com/RMS_DB_Metadata', payload);
   }
 
-  getAppliedJobsByCandidate(candidateId: string): Promise<any> {
-    return this.ajax('GetAppliedJobsByCandidate', 'http://schemas.cordys.com/RMS_DB_Metadata', {
-      candidate_id: candidateId,
-      preserveSpace: 'no',
-      qAccess: '0',
-      qValues: '',
-      cursor: {
-        '@id': '0',
-        '@position': '0',
-        '@numRows': '5',
-        '@maxRows': '99999',
-        '@sameConnection': 'false'
+  /**
+   * Create a new user in the organization using the CreateUserInOrganization SOAP API.
+   */
+  createUser(email: string, fullName: string, role: string = 'Candidate_RMS'): Promise<any> {
+    const payload = {
+      User: {
+        UserName: {
+          '@isAnonymous': '',
+          text: email
+        },
+        Description: fullName,
+        Credentials: {
+          '@allowDuplicate': 'true',
+          UserIDPassword: {
+            UserID: email,
+            Password: 'TEST'
+          }
+        },
+        Roles: {
+          Role: {
+            '@application': '',
+            text: role
+          }
+        }
       }
-    });
+    };
+    return this.ajax('CreateUserInOrganization', 'http://schemas.cordys.com/UserManagement/1.0/Organization', payload);
   }
 
   /**
@@ -417,4 +484,126 @@ export class HeroService {
     return this.ajax('UpdateInterview_panel', 'http://schemas.cordys.com/RMS_DB_Metadata', payload);
   }
 
+  showAllJobRequisition(): Promise<any> {
+    return this.ajax('ShowAllJobRequisition', 'http://schemas.cordys.com/RMS_DB_Metadata', {
+      preserveSpace: 'no',
+      qAccess: '0',
+      qValues: ''
+    });
+  }
+
+  createCandidate(name: string, email: string): Promise<any> {
+    const payload: any = {
+      '@reply': 'yes',
+      '@commandUpdate': 'no',
+      '@preserveSpace': 'no',
+      '@batchUpdate': 'no',
+      tuple: {
+        new: {
+          candidate: {
+             '@qAccess': '0',
+             '@qConstraint': '0',
+             '@qInit': '0',
+             '@qValues': '',
+             name: name,
+             email: email
+          }
+        }
+      }
+    };
+    return this.ajax('UpdateCandidate', 'http://schemas.cordys.com/RMS_DB_Metadata', payload);
+  }
+
+  updateCandidate(candidateId: string, updatedFields: any): Promise<any> {
+    const payload = {
+      reply: 'yes',
+      commandUpdate: 'no',
+      preserveSpace: 'no',
+      batchUpdate: 'no',
+      tuple: {
+        old: {
+          candidate: {
+            '@qConstraint': '0',
+            candidate_id: candidateId
+          }
+        },
+        new: {
+          candidate: {
+            '@qAccess': '0',
+            '@qConstraint': '0',
+            '@qInit': '0',
+            '@qValues': '',
+            ...updatedFields
+          }
+        }
+      }
+    };
+    return this.ajax('UpdateCandidate', 'http://schemas.cordys.com/RMS_DB_Metadata', payload);
+  }
+
+  getAppliedJobsByCandidate(candidateId: string): Promise<any> {
+    return this.ajax('GetAppliedJobsByCandidate', 'http://schemas.cordys.com/RMS_DB_Metadata', {
+      candidate_id: candidateId,
+      preserveSpace: 'no',
+      qAccess: '0',
+      qValues: '',
+      cursor: {
+        '@id': '0',
+        '@position': '0',
+        '@numRows': '5',
+        '@maxRows': '99999',
+        '@sameConnection': 'false'
+      }
+    });
+  }
+
+  /**
+   * Get Candidate ID by email and password using the GetCandidateIDByEmailPassword SOAP service.
+   */
+  getCandidateIDByEmailPassword(email: string, password: string): Promise<any> {
+    return this.ajax('GetCandidateIDByEmailPassword', 'http://schemas.cordys.com/RMS_DB_Metadata', {
+      email: email,
+      password: password,
+      preserveSpace: 'no',
+      qAccess: '0',
+      qValues: ''
+    });
+  }
+
+  /**
+   * Get Candidate data object by candidate ID using the GetCandidateObject SOAP service.
+   */
+  getCandidateObject(candidateId: string): Promise<any> {
+    return this.ajax('GetCandidateObject', 'http://schemas.cordys.com/RMS_DB_Metadata', {
+      Candidate_id: candidateId,
+      preserveSpace: 'no',
+      qAccess: '0',
+      qValues: ''
+    });
+  }
+
+  /**
+   * Get all Candidate records.
+   */
+  getCandidateObjects(): Promise<any> {
+    return this.ajax('GetCandidateObjects', 'http://schemas.cordys.com/RMS_DB_Metadata', {
+      fromCandidate_id: '0',
+      toCandidate_id: 'zzzzzzzzzz'
+    });
+  }
+
+  /**
+   * Get Candidate record by email only.
+   */
+  getCandidateByEmail(email: string): Promise<any> {
+    return this.ajax('GetCandidateByEmail', 'http://schemas.cordys.com/RMS_DB_Metadata', {
+      email: email,
+      preserveSpace: 'no',
+      qAccess: '0',
+      qValues: ''
+    });
+  }
+
 }
+
+

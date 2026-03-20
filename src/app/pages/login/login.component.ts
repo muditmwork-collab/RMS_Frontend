@@ -224,16 +224,61 @@ export class LoginComponent {
         .done((resp: any) => {
           console.log('[CandidateLogin] Cordys SSO auth success:', resp);
           sessionStorage.setItem('displayName', email);
-          sessionStorage.setItem('candidate_id', email);
           sessionStorage.setItem('userRole', 'Candidate');
-          this.auth.setAuthenticated(true);
-          this.loading = false;
-          this.router.navigate(['/candidate']);
+
+          // Fetch the actual candidate_id from the database
+          this.heroService.getCandidateIDByEmailPassword(email, password)
+            .then((idResp: any) => {
+              let candId = this.heroService.xmltojson(idResp, 'candidate_id');
+              if (!candId) { candId = this.heroService.xmltojson(idResp, 'Candidate_id'); }
+              
+              if (candId) {
+                const finalId = (typeof candId === 'object' && candId.text) ? candId.text : String(candId);
+                sessionStorage.setItem('candidate_id', finalId);
+                console.log('[CandidateLogin] DB ID found:', finalId);
+                this.auth.setAuthenticated(true);
+                this.loading = false;
+                this.router.navigate(['/candidate']);
+              } else {
+                console.warn('[CandidateLogin] No ID in login service. Trying email lookup...');
+                // Fallback: try finding by email in candidate table
+                return this.heroService.getCandidateObjects(); // we'll filter this list or something similar
+              }
+              return null;
+            })
+            .then((allCandidatesResp: any) => {
+              if (!allCandidatesResp) return;
+              
+              // If we reach here, we are doing a manual search for the email
+              try {
+                const candidates = this.heroService.xmltojson(allCandidatesResp, 'candidate');
+                const candList = Array.isArray(candidates) ? candidates : (candidates ? [candidates] : []);
+                const found = candList.find((c: any) => c.email === email);
+                
+                if (found) {
+                  const finalId = found.candidate_id || found.Candidate_id;
+                  sessionStorage.setItem('candidate_id', finalId);
+                  console.log('[CandidateLogin] Found ID via list search:', finalId);
+                } else {
+                  console.error('[CandidateLogin] Email not found in candidate records.');
+                  sessionStorage.setItem('candidate_id', email);
+                }
+              } catch (e) {
+                sessionStorage.setItem('candidate_id', email);
+              }
+              this.auth.setAuthenticated(true);
+              this.loading = false;
+              this.router.navigate(['/candidate']);
+            })
+            .catch((err: any) => {
+              console.error('[CandidateLogin] Error during ID retrieval process:', err);
+              sessionStorage.setItem('candidate_id', email);
+              this.auth.setAuthenticated(true);
+              this.loading = false;
+              this.router.navigate(['/candidate']);
+            });
         })
         .fail((err: any) => {
-          console.error('[CandidateLogin] Cordys SSO auth failed:', err);
-          this.loading = false;
-          this.errorMessage = 'The username or password you entered is incorrect.';
           this.showToast(this.errorMessage, 'error');
         });
     } catch (e) {

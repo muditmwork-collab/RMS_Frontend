@@ -107,10 +107,11 @@
       url = url.replace(/^[/\\]cordys[/\\]/, $.cordys.webDirectoryPath);
     } else {
       // Change to root/org if we have not launched using the /cordys URL
-      // Get the Base URL Prefix
-      var baseURLPrefix = window.location.href.match(
+      // Get the Base URL Prefix, safely handle if match is null (e.g. localhost angular dev server)
+      var matchResult = window.location.href.match(
         /[^:]+:[/\\]+[^/\\]+([/\\][^/\\]+[/\\][^/\\]+[/\\])/
-      )[1];
+      );
+      var baseURLPrefix = matchResult ? matchResult[1] : '';
       // Replace /cordys with baseURLPrefix if we have it
       if (baseURLPrefix && !baseURLPrefix.match(/^[/\\]cordys/i)) {
         url = url.replace(/^[/\\]cordys[/\\]/, baseURLPrefix);
@@ -241,12 +242,12 @@
     };
 
     // fires on all sdk-ready handlers passed to the $.cordys.ready fn. The data-include callback is executed after it
-    function fireAllSDKLoadedCallBacks(arguments) {
+    function fireAllSDKLoadedCallBacks(args) {
       $readyCallBack.fire();
 
       if (typeof window[dataIncludeOpts.ready] === 'function') {
         //NOMBV
-        window[dataIncludeOpts.ready](arguments); //NOMBV
+        window[dataIncludeOpts.ready](args); //NOMBV
       } else {
         if (typeof requirejs !== 'undefined') {
           console.error(
