@@ -311,4 +311,51 @@ export class LeadershipDashboardService {
       'Mudit M'
     );
   }
+
+  // ─── Interview Panel — get all panel assignments for this interviewer ───
+  async getInterviewPanelForInterviewer(employeeId: string): Promise<any[]> {
+    try {
+      const resp = await this.hero.ajax('GetInterview_panelObjects', NAMESPACE, {
+        fromPanel_id: '0',
+        toPanel_id: 'zzzzzzzzzz'
+      });
+      const allPanels = this.extractTuples(resp, 'interview_panel');
+      return allPanels.filter((p: any) =>
+        (p.interviewer_id || '').toLowerCase() === employeeId.toLowerCase()
+      );
+    } catch (e) {
+      console.error('[LeadershipService] GetInterview_panelObjects failed:', e);
+      return [];
+    }
+  }
+
+  // ─── Update Interview Panel (accept / submit feedback) ───
+  async updateInterviewPanel(oldData: any, newData: any): Promise<any> {
+    return this.hero.ajax('UpdateInterview_panel', NAMESPACE, {
+      tuple: {
+        old: { interview_panel: oldData },
+        new: { interview_panel: newData }
+      }
+    });
+  }
+
+  // ─── Create a new Interview Panel entry (for delegation) ───
+  async createInterviewPanelEntry(data: any): Promise<any> {
+    return this.hero.ajax('UpdateInterview_panel', NAMESPACE, {
+      tuple: {
+        new: { interview_panel: data }
+      }
+    });
+  }
+
+  // ─── Create Delegation Record ───
+  async createDelegation(data: {
+    original_interviewer_id: string;
+    delegate_interviewer_id: string;
+    start_date: string;
+    end_date: string;
+    reason: string;
+  }): Promise<any> {
+    return this.hero.createDelegation(data);
+  }
 }

@@ -56,6 +56,33 @@ interface Candidate {
   interview_round: string;
 }
 
+interface InterviewRequest {
+  panel_id: string;
+  interview_id: string;
+  interviewer_id: string;
+  interviewer_name: string;
+  feedback: string;
+  rating: number;
+  candidate_name: string;
+  candidate_email: string;
+  candidate_id: string;
+  candidate_skills: string;
+  candidate_experience: number;
+  jr_id: string;
+  job_title: string;
+  job_department: string;
+  job_location: string;
+  job_description: string;
+  required_skills: string;
+  round: string;
+  scheduled_date: string;
+  scheduled_time: string;
+  meeting_link: string;
+  interview_status: string;
+  accepted: boolean;
+  delegated_by: string;
+}
+
 @Component({
   selector: 'app-leadership-dashboard',
   standalone: true,
@@ -65,7 +92,7 @@ interface Candidate {
   styleUrls: ['./leadership-dashboard.component.css']
 })
 export class LeadershipDashboardComponent implements OnInit {
-  activeTab: 'overview' | 'jobs' | 'employees' | 'approvals' | 'candidates' = 'overview';
+  activeTab: 'overview' | 'jobs' | 'approvals' | 'candidates' | 'interviews' = 'overview';
 
   Math = Math;
   // Loading & error states
@@ -76,6 +103,7 @@ export class LeadershipDashboardComponent implements OnInit {
   loggedInUserName = 'User';
   loggedInUserInitial = 'U';
   loggedInUserRole = 'Leadership';
+  loggedInEmployeeId = '';
 
   constructor(
     private router: Router,
@@ -110,6 +138,27 @@ export class LeadershipDashboardComponent implements OnInit {
   candidateApplications: any[] = [];
   offeredCandidates: any[] = [];
 
+  // Interview data
+  myInterviewRequests: InterviewRequest[] = [];
+  myAcceptedInterviews: InterviewRequest[] = [];
+
+  // Interview detail panel
+  selectedInterview: InterviewRequest | null = null;
+  feedbackText = '';
+  feedbackRating = 0;
+  isSubmittingFeedback = false;
+  technicalSkills = '';
+  communicationSkills = '';
+  culturalFit = '';
+  anotherInterviewRequired = '';
+
+  // Delegation modal
+  showDelegateModal = false;
+  delegatingRequest: InterviewRequest | null = null;
+  delegateEmployeeId = '';
+  delegateReason = '';
+  isDelegating = false;
+
   // Pagination for Employees
   employeePage = 1;
   employeePageSize = 10;
@@ -130,6 +179,16 @@ export class LeadershipDashboardComponent implements OnInit {
   showApproveConfirmModal = false;
   isApprovalLoading = false;
   approvalLoadingMessage = 'Processing...';
+
+  // Job Requisition confirmation modal
+  showJrConfirmModal = false;
+  jrConfirmAction: 'approve' | 'reject' = 'approve';
+  selectedRequisition: JobRequisition | null = null;
+
+  // Offer letter confirmation modal
+  showOfferConfirmModal = false;
+  offerConfirmAction: 'approve' | 'reject' = 'approve';
+  selectedOfferForConfirm: any = null;
 
   ngOnInit(): void {
     this.loadAllData();
@@ -174,9 +233,13 @@ export class LeadershipDashboardComponent implements OnInit {
       console.log('[Dashboard] All jobs parsed:', allJobs.length, allJobs);
       console.log('[Dashboard] Job statuses:', allJobs.map(j => ({ jr_id: j.jr_id, status: j.status, approval_status: j.approval_status })));
 
-      // Active jobs: approval_status is APPROVED or status is OPEN/ACTIVE
-      this.jobs = allJobs.filter(j => j.approval_status === 'APPROVED' || j.status === 'OPEN' || j.status === 'ACTIVE');
-      this.pendingApprovals = allJobs.filter(j => j.approval_status === 'PENDING')
+      // Active jobs: approval_status is APPROVED or status is OPEN/ACTIVE (case-insensitive)
+      this.jobs = allJobs.filter(j => {
+        const approval = (j.approval_status || '').toUpperCase();
+        const status = (j.status || '').toUpperCase();
+        return approval === 'APPROVED' || status === 'OPEN' || status === 'ACTIVE';
+      });
+      this.pendingApprovals = allJobs.filter(j => (j.approval_status || '').toUpperCase() === 'PENDING')
         .sort((a, b) => {
           const aNum = parseInt(a.jr_id.replace(/\D/g, ''), 10) || 0;
           const bNum = parseInt(b.jr_id.replace(/\D/g, ''), 10) || 0;
@@ -257,9 +320,7 @@ export class LeadershipDashboardComponent implements OnInit {
 
       // Resolve logged-in user name from employee data
       const loggedInId = sessionStorage.getItem('employeeId') || '';
-      console.log('[Dashboard] Looking up user. employeeId =', loggedInId);
-      console.log('[Dashboard] Employee IDs in DB:', this.employees.map(e => e.employee_id));
-      console.log('[Dashboard] Employee emails in DB:', this.employees.map(e => e.email));
+      let resolvedEmployeeId = loggedInId;
 
       if (loggedInId && this.employees.length > 0) {
         // Try matching by employee_id first, then by email
@@ -268,12 +329,65 @@ export class LeadershipDashboardComponent implements OnInit {
           e.email.toLowerCase() === loggedInId.toLowerCase()
         );
         if (me) {
-          console.log('[Dashboard] Matched user:', me.employee_name);
           this.loggedInUserName = me.employee_name;
           this.loggedInUserInitial = me.employee_name.charAt(0).toUpperCase();
           this.loggedInUserRole = me.designation || me.role || 'Leadership';
-        } else {
-          console.warn('[Dashboard] No employee match found for:', loggedInId);
+          resolvedEmployeeId = me.employee_id;
+          this.loggedInEmployeeId = me.employee_id;
+        }
+      }
+
+      // Load interview panels for the logged-in user
+      if (resolvedEmployeeId) {
+        try {
+          const panels = await this.dashboardService.getInterviewPanelForInterviewer(resolvedEmployeeId);
+          const allInterviews = this.interviews;
+
+          const enrichedPanels: InterviewRequest[] = panels.map((p: any) => {
+            const interview = allInterviews.find((i: any) => i.interview_id === p.interview_id) || {} as any;
+            const candidate = this.candidates.find((c: any) => c.candidate_id === interview.candidate_id) || {} as any;
+            const job = this.jobs.find((j: any) => j.jr_id === interview.jr_id) ||
+                        allJobs.find((j: any) => j.jr_id === interview.jr_id) || {} as any;
+
+            const temp1 = (p.temp1 || '').toUpperCase();
+            const accepted = temp1 === 'ACCEPTED';
+            const delegated = temp1 === 'DELEGATED';
+
+            return {
+              panel_id: p.panel_id || '',
+              interview_id: p.interview_id || '',
+              interviewer_id: p.interviewer_id || '',
+              interviewer_name: p.interviewer_name || '',
+              feedback: p.feedback || '',
+              rating: parseInt(p.rating, 10) || 0,
+              candidate_name: candidate.name || '',
+              candidate_email: candidate.email || '',
+              candidate_id: candidate.candidate_id || interview.candidate_id || '',
+              candidate_skills: candidate.skills || '',
+              candidate_experience: parseInt(candidate.experience, 10) || 0,
+              jr_id: interview.jr_id || '',
+              job_title: job.job_title || '',
+              job_department: job.department || '',
+              job_location: job.location || '',
+              job_description: job.job_description || '',
+              required_skills: job.required_skills || '',
+              round: interview.round || '',
+              scheduled_date: interview.scheduled_date || '',
+              scheduled_time: interview.scheduled_time || '',
+              meeting_link: interview.meeting_link || '',
+              interview_status: interview.status || '',
+              accepted,
+              delegated_by: '',
+              _delegated: delegated
+            } as any;
+          });
+
+          this.myInterviewRequests = enrichedPanels.filter(r => !r.accepted && !(r as any)._delegated);
+          this.myAcceptedInterviews = enrichedPanels.filter(r => r.accepted && !r.feedback);
+          console.log('[Dashboard] Interview requests:', this.myInterviewRequests.length);
+          console.log('[Dashboard] Accepted interviews:', this.myAcceptedInterviews.length);
+        } catch (e) {
+          console.warn('[Dashboard] Failed to load interview panels:', e);
         }
       }
 
@@ -299,7 +413,9 @@ export class LeadershipDashboardComponent implements OnInit {
   private buildDeptChart(): void {
     const deptMap: Record<string, number> = {};
     this.jobs.forEach(j => {
-      const dept = j.department || 'Unknown';
+      const rawDept = (j.department || 'Unknown').trim();
+      // Normalize to title case for case-insensitive grouping
+      const dept = rawDept.charAt(0).toUpperCase() + rawDept.slice(1).toLowerCase();
       deptMap[dept] = (deptMap[dept] || 0) + (j.no_of_positions || 1);
     });
     const depts = Object.keys(deptMap);
@@ -372,7 +488,7 @@ export class LeadershipDashboardComponent implements OnInit {
   private buildPriorityChart(): void {
     const priorityMap: Record<string, number> = {};
     this.jobs.forEach(j => {
-      const p = j.priority || 'Unknown';
+      const p = (j.priority || 'Unknown').toUpperCase();
       priorityMap[p] = (priorityMap[p] || 0) + 1;
     });
 
@@ -496,7 +612,7 @@ export class LeadershipDashboardComponent implements OnInit {
   get filteredEmployees(): Employee[] {
     let result = this.employees;
     if (this.departmentFilter && this.departmentFilter !== 'All Departments') {
-      result = result.filter(e => e.department === this.departmentFilter);
+      result = result.filter(e => e.department.toLowerCase() === this.departmentFilter.toLowerCase());
     }
     const q = this.employeeSearch.toLowerCase();
     if (q) {
@@ -544,24 +660,228 @@ export class LeadershipDashboardComponent implements OnInit {
   }
 
   get activeEmployeeCount(): number {
-    return this.employees.filter(e => e.status === 'ACTIVE').length;
+    return this.employees.filter(e => (e.status || '').toUpperCase() === 'ACTIVE').length;
   }
 
   get highPriorityJobCount(): number {
-    return this.jobs.filter(j => j.priority === 'HIGH').length;
+    return this.jobs.filter(j => (j.priority || '').toUpperCase() === 'HIGH').length;
   }
 
   get interviewsInProgressCount(): number {
-    return this.candidates.filter(c => c.interview_status === 'IN_PROGRESS').length;
+    return this.candidates.filter(c => (c.interview_status || '').toUpperCase() === 'IN_PROGRESS').length;
   }
 
   get totalPositions(): number {
     return this.jobs.reduce((sum, j) => sum + j.no_of_positions, 0);
   }
 
+  get departmentsHiringCount(): number {
+    const depts = new Set(this.jobs.map(j => (j.department || '').trim().toLowerCase()));
+    depts.delete('');
+    return depts.size;
+  }
+
   // ─── Actions ───
-  setTab(tab: 'overview' | 'jobs' | 'employees' | 'approvals' | 'candidates') {
+  setTab(tab: 'overview' | 'jobs' | 'approvals' | 'candidates' | 'interviews') {
     this.activeTab = tab;
+  }
+
+  // ─── Interview Actions ───
+  async acceptInterviewRequest(req: InterviewRequest): Promise<void> {
+    try {
+      const oldData = {
+        panel_id: req.panel_id,
+        interview_id: req.interview_id,
+        interviewer_id: req.interviewer_id
+      };
+      const newData = {
+        panel_id: req.panel_id,
+        interview_id: req.interview_id,
+        interviewer_id: req.interviewer_id,
+        interviewer_name: req.interviewer_name,
+        temp1: 'accepted'
+      };
+      await this.dashboardService.updateInterviewPanel(oldData, newData);
+      req.accepted = true;
+      this.myInterviewRequests = this.myInterviewRequests.filter(r => r.panel_id !== req.panel_id);
+      this.myAcceptedInterviews = [...this.myAcceptedInterviews, req];
+      this.showToast2('Interview request accepted!', 'success');
+    } catch (error) {
+      console.error('Failed to accept interview:', error);
+      this.showToast2('Failed to accept interview request.', 'error');
+    }
+  }
+
+  // ─── Delegation ───
+  openDelegateModal(req: InterviewRequest): void {
+    this.delegatingRequest = req;
+    this.delegateEmployeeId = '';
+    this.delegateReason = '';
+    this.showDelegateModal = true;
+  }
+
+  closeDelegateModal(): void {
+    this.showDelegateModal = false;
+    this.delegatingRequest = null;
+  }
+
+  get delegateEmployeeOptions(): Employee[] {
+    const loggedInId = sessionStorage.getItem('employeeId') || '';
+    return this.employees.filter(e =>
+      e.employee_id.toLowerCase() !== loggedInId.toLowerCase() &&
+      (e.status || '').toUpperCase() === 'ACTIVE'
+    );
+  }
+
+  async confirmDelegate(): Promise<void> {
+    if (!this.delegatingRequest || !this.delegateEmployeeId) return;
+    this.isDelegating = true;
+    try {
+      const oldData = {
+        panel_id: this.delegatingRequest.panel_id,
+        interview_id: this.delegatingRequest.interview_id,
+        interviewer_id: this.delegatingRequest.interviewer_id
+      };
+      const newData = {
+        panel_id: this.delegatingRequest.panel_id,
+        interview_id: this.delegatingRequest.interview_id,
+        interviewer_id: this.delegatingRequest.interviewer_id,
+        interviewer_name: this.delegatingRequest.interviewer_name,
+        temp1: 'delegated'
+      };
+      await this.dashboardService.updateInterviewPanel(oldData, newData);
+
+      const delegateEmp = this.employees.find(e => e.employee_id === this.delegateEmployeeId);
+      await this.dashboardService.createInterviewPanelEntry({
+        interview_id: this.delegatingRequest.interview_id,
+        interviewer_id: this.delegateEmployeeId,
+        interviewer_name: delegateEmp?.employee_name || '',
+        temp1: 'pending'
+      });
+
+      // Delegation record — wrap separately so panel changes aren't lost
+      try {
+        const loggedInId = this.loggedInEmployeeId;
+        const delegationData = {
+          original_interviewer_id: loggedInId,
+          delegate_interviewer_id: this.delegateEmployeeId,
+          start_date: this.delegatingRequest.scheduled_date || new Date().toISOString().split('T')[0],
+          end_date: this.delegatingRequest.scheduled_date || new Date().toISOString().split('T')[0],
+          reason: this.delegateReason || 'Delegated via leadership dashboard'
+        };
+        console.log('[Dashboard] Delegation payload:', JSON.stringify(delegationData));
+        const result = await this.dashboardService.createDelegation(delegationData);
+        console.log('[Dashboard] Delegation insert result:', result);
+      } catch (delegationError: any) {
+        console.error('[Dashboard] Delegation record insert FAILED:', delegationError);
+        console.error('[Dashboard] Error details:', JSON.stringify(delegationError, Object.getOwnPropertyNames(delegationError)));
+        this.showToast2('Delegation record failed: ' + (delegationError?.message || delegationError?.statusText || 'Check console'), 'error');
+      }
+
+      this.myInterviewRequests = this.myInterviewRequests.filter(r => r.panel_id !== this.delegatingRequest!.panel_id);
+      this.closeDelegateModal();
+      this.showToast2('Interview delegated successfully!', 'success');
+    } catch (error) {
+      console.error('Failed to delegate:', error);
+      this.showToast2('Failed to delegate interview.', 'error');
+    } finally {
+      this.isDelegating = false;
+    }
+  }
+
+  // ─── Interview Detail ───
+  openInterviewDetail(interview: InterviewRequest): void {
+    this.selectedInterview = interview;
+    this.feedbackText = interview.feedback || '';
+    this.feedbackRating = interview.rating || 0;
+    this.technicalSkills = (interview as any).temp2 || '';
+    this.communicationSkills = (interview as any).temp3 || '';
+    this.culturalFit = (interview as any).temp4 || '';
+    this.anotherInterviewRequired = (interview as any).temp5 || '';
+  }
+
+  closeInterviewDetail(): void {
+    this.selectedInterview = null;
+  }
+
+  setRating(rating: number): void {
+    this.feedbackRating = rating;
+  }
+
+  async submitFeedback(): Promise<void> {
+    if (!this.selectedInterview) return;
+    if (this.feedbackRating < 1 || this.feedbackRating > 5) {
+      this.showToast2('Please provide a rating between 1 and 5.', 'error');
+      return;
+    }
+    if (!this.feedbackText.trim()) {
+      this.showToast2('Please provide your feedback.', 'error');
+      return;
+    }
+    this.isSubmittingFeedback = true;
+    try {
+      const oldData = {
+        panel_id: this.selectedInterview.panel_id,
+        interview_id: this.selectedInterview.interview_id,
+        interviewer_id: this.selectedInterview.interviewer_id
+      };
+      const newData = {
+        ...oldData,
+        interviewer_name: this.selectedInterview.interviewer_name,
+        feedback: this.feedbackText,
+        rating: this.feedbackRating,
+        temp1: 'accepted',
+        temp2: this.technicalSkills,
+        temp3: this.communicationSkills,
+        temp4: this.culturalFit,
+        temp5: this.anotherInterviewRequired
+      };
+      await this.dashboardService.updateInterviewPanel(oldData, newData);
+      const panelId = this.selectedInterview.panel_id;
+      this.myAcceptedInterviews = this.myAcceptedInterviews.filter(i => i.panel_id !== panelId);
+      this.showToast2('Feedback submitted successfully!', 'success');
+      this.closeInterviewDetail();
+    } catch (error) {
+      console.error('Failed to submit feedback:', error);
+      this.showToast2('Failed to submit feedback.', 'error');
+    } finally {
+      this.isSubmittingFeedback = false;
+    }
+  }
+
+  getInterviewStatusClass(status: string): string {
+    switch ((status || '').toUpperCase()) {
+      case 'COMPLETED': return 'status-active';
+      case 'SCHEDULED': case 'IN_PROGRESS': return 'status-in-progress';
+      case 'PENDING': return 'status-pending';
+      case 'CANCELLED': return 'status-on-leave';
+      default: return 'status-pending';
+    }
+  }
+
+  // ─── Job Requisition Confirm Modal Actions ───
+  openJrConfirmModal(jr: JobRequisition, action: 'approve' | 'reject') {
+    this.selectedRequisition = jr;
+    this.jrConfirmAction = action;
+    this.showJrConfirmModal = true;
+  }
+
+  closeJrConfirmModal() {
+    this.showJrConfirmModal = false;
+    this.selectedRequisition = null;
+  }
+
+  async confirmJrAction(): Promise<void> {
+    if (!this.selectedRequisition) return;
+    const jr = this.selectedRequisition;
+    this.showJrConfirmModal = false;
+
+    if (this.jrConfirmAction === 'approve') {
+      await this.approveRequisition(jr);
+    } else {
+      await this.rejectRequisition(jr);
+    }
+    this.selectedRequisition = null;
   }
 
   async approveRequisition(jr: JobRequisition): Promise<void> {
@@ -576,9 +896,10 @@ export class LeadershipDashboardComponent implements OnInit {
       this.jobs.push({ ...jr });
       this.pendingApprovals = this.pendingApprovals.filter(a => a.jr_id !== jr.jr_id);
       this.buildCharts();
+      this.showToast2(`Job requisition ${jr.jr_id} approved successfully!`, 'success');
     } catch (error) {
       console.error('Failed to approve requisition:', error);
-      alert('Failed to approve requisition. Please try again.');
+      this.showToast2('Failed to approve requisition. Please try again.', 'error');
     }
   }
 
@@ -592,14 +913,15 @@ export class LeadershipDashboardComponent implements OnInit {
       jr.status = 'INACTIVE';
       jr.approval_status = 'REJECTED';
       this.pendingApprovals = this.pendingApprovals.filter(a => a.jr_id !== jr.jr_id);
+      this.showToast2(`Job requisition ${jr.jr_id} has been rejected.`, 'success');
     } catch (error) {
       console.error('Failed to reject requisition:', error);
-      alert('Failed to reject requisition. Please try again.');
+      this.showToast2('Failed to reject requisition. Please try again.', 'error');
     }
   }
 
   getPriorityClass(priority: string): string {
-    switch (priority) {
+    switch ((priority || '').toUpperCase()) {
       case 'HIGH': return 'priority-high';
       case 'MEDIUM': return 'priority-medium';
       case 'LOW': return 'priority-low';
@@ -608,7 +930,7 @@ export class LeadershipDashboardComponent implements OnInit {
   }
 
   getStatusClass(status: string): string {
-    switch (status) {
+    switch ((status || '').toUpperCase()) {
       case 'ACTIVE': case 'APPROVED': case 'COMPLETED': case 'OPEN': return 'status-active';
       case 'IN_PROGRESS': case 'SCHEDULED': return 'status-in-progress';
       case 'PENDING': case 'DRAFT': return 'status-pending';
@@ -618,6 +940,10 @@ export class LeadershipDashboardComponent implements OnInit {
   }
 
   getCandidateCountForJob(jrId: string): number {
+    // Count from candidateApplications (actual applications) rather than candidate master list
+    const fromApps = this.candidateApplications.filter((a: any) => a.jr_id === jrId).length;
+    if (fromApps > 0) return fromApps;
+    // Fallback to candidate master data
     return this.candidates.filter(c => c.jr_id === jrId).length;
   }
 
@@ -762,9 +1088,35 @@ export class LeadershipDashboardComponent implements OnInit {
     }
   }
 
+  // ─── Offer Confirm Modal Actions ───
+  openOfferConfirmModal(offer: any, action: 'approve' | 'reject') {
+    this.selectedOfferForConfirm = offer;
+    this.offerConfirmAction = action;
+    this.showOfferConfirmModal = true;
+  }
+
+  closeOfferConfirmModal() {
+    this.showOfferConfirmModal = false;
+    this.selectedOfferForConfirm = null;
+  }
+
+  async confirmOfferAction() {
+    if (!this.selectedOfferForConfirm) return;
+    const offer = this.selectedOfferForConfirm;
+    this.showOfferConfirmModal = false;
+
+    if (this.offerConfirmAction === 'approve') {
+      this.selectedOffer = offer;
+      this.confirmApproveOffer();
+    } else {
+      this.selectedOffer = offer;
+      this.rejectOffer();
+    }
+    this.selectedOfferForConfirm = null;
+  }
+
   async rejectOffer() {
     if (!this.selectedOffer || this.isProcessingOffer) return;
-    if (!confirm(`Are you sure you want to reject the offer for ${this.selectedOffer.candidate_name}?`)) return;
     this.isProcessingOffer = true;
 
     try {
