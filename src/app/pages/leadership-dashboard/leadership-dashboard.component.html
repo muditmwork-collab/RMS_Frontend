@@ -17,14 +17,16 @@
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 0 0 .75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 0 0-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0 1 12 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 0 1-.673-.38m0 0A2.18 2.18 0 0 1 3 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 0 1 3.413-.387m7.5 0V5.25A2.25 2.25 0 0 0 13.5 3h-3a2.25 2.25 0 0 0-2.25 2.25v.894m7.5 0a48.667 48.667 0 0 0-7.5 0M12 12.75h.008v.008H12v-.008Z" /></svg>
         <span>Active Jobs</span>
       </button>
-      <button class="nav-item" [class.active]="activeTab === 'employees'" (click)="setTab('employees')">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" /></svg>
-        <span>Employees</span>
-      </button>
+
       <button class="nav-item" [class.active]="activeTab === 'approvals'" (click)="setTab('approvals')">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
         <span>Approvals</span>
         <span class="badge" *ngIf="(pendingApprovals.length + offeredCandidates.length) > 0">{{ pendingApprovals.length + offeredCandidates.length }}</span>
+      </button>
+      <button class="nav-item" [class.active]="activeTab === 'interviews'" (click)="setTab('interviews')">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M2.25 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h15a2.25 2.25 0 0 1 2.25 2.25v11.25m-19.5 0A2.25 2.25 0 0 0 4.5 21h15a2.25 2.25 0 0 0 2.25-2.25m-19.5 0v-2.25h19.5v2.25M12 9.75h.008v.008H12V9.75Zm0 3h.008v.008H12v-.008Zm0 3h.008v.008H12v-.008Z" /></svg>
+        <span>My Interviews</span>
+        <span class="badge" *ngIf="myInterviewRequests.length > 0">{{ myInterviewRequests.length }}</span>
       </button>
 
     </nav>
@@ -90,14 +92,14 @@
           </div>
         </div>
 
-        <div class="kpi-card kpi-employees" (click)="setTab('employees')">
+        <div class="kpi-card kpi-candidates">
           <div class="kpi-icon">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" /></svg>
           </div>
           <div class="kpi-content">
-            <span class="kpi-value">{{ activeEmployeeCount }}</span>
-            <span class="kpi-label">Active Employees</span>
-            <span class="kpi-sub">{{ employees.length }} total</span>
+            <span class="kpi-value">{{ candidates.length }}</span>
+            <span class="kpi-label">Total Candidates</span>
+            <span class="kpi-sub">{{ interviewsInProgressCount }} in interview process</span>
           </div>
         </div>
 
@@ -106,12 +108,22 @@
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
           </div>
           <div class="kpi-content">
-            <span class="kpi-value">{{ pendingApprovals.length }}</span>
+            <span class="kpi-value">{{ pendingApprovals.length + offeredCandidates.length }}</span>
             <span class="kpi-label">Pending Approvals</span>
-            <span class="kpi-sub">Awaiting your review</span>
+            <span class="kpi-sub">{{ pendingApprovals.length }} Job Requisition{{ pendingApprovals.length !== 1 ? 's' : '' }} · {{ offeredCandidates.length }} Offer Letter{{ offeredCandidates.length !== 1 ? 's' : '' }}</span>
           </div>
         </div>
 
+        <div class="kpi-card kpi-interviews" (click)="setTab('interviews')">
+          <div class="kpi-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M2.25 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h15a2.25 2.25 0 0 1 2.25 2.25v11.25m-19.5 0A2.25 2.25 0 0 0 4.5 21h15a2.25 2.25 0 0 0 2.25-2.25m-19.5 0v-2.25h19.5v2.25M12 9.75h.008v.008H12V9.75Zm0 3h.008v.008H12v-.008Zm0 3h.008v.008H12v-.008Z" /></svg>
+          </div>
+          <div class="kpi-content">
+            <span class="kpi-value">{{ myInterviewRequests.length + myAcceptedInterviews.length }}</span>
+            <span class="kpi-label">My Interviews</span>
+            <span class="kpi-sub">{{ myInterviewRequests.length }} pending · {{ myAcceptedInterviews.length }} accepted</span>
+          </div>
+        </div>
 
       </div>
 
@@ -188,7 +200,7 @@
           <div class="quick-stat-header">
             <span class="quick-stat-label">Departments Hiring</span>
           </div>
-          <span class="quick-stat-value">{{ departments.length - 1 }}</span>
+          <span class="quick-stat-value">{{ departmentsHiringCount }}</span>
         </div>
       </div>
     </section>
@@ -254,68 +266,7 @@
       </div>
     </section>
 
-    <!-- ==================== EMPLOYEES TAB ==================== -->
-    <section *ngIf="!isLoading && !errorMessage && activeTab === 'employees'" class="tab-content animate-fade-in">
-      <div class="tab-toolbar">
-        <h2 class="tab-title">Company Employees</h2>
-        <div class="toolbar-controls">
-          <select [(ngModel)]="departmentFilter" class="filter-select">
-            <option *ngFor="let dept of departments" [value]="dept">{{ dept }}</option>
-          </select>
-          <div class="search-box">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
-            <input type="text" [(ngModel)]="employeeSearch" placeholder="Search employees…" />
-          </div>
-        </div>
-      </div>
 
-      <div class="section-card">
-        <div class="table-wrapper">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Employee ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Department</th>
-                <th>Designation</th>
-                <th>Joining Date</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let emp of paginatedEmployees">
-                <td><span class="id-badge">{{ emp.employee_id }}</span></td>
-                <td class="font-semibold">{{ emp.employee_name }}</td>
-                <td class="text-muted">{{ emp.email }}</td>
-                <td>{{ emp.department }}</td>
-                <td>{{ emp.designation }}</td>
-                <td>{{ emp.joining_date }}</td>
-                <td><span class="status-badge" [ngClass]="getStatusClass(emp.status)">{{ emp.status }}</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="table-footer" style="display: flex; justify-content: space-between; align-items: center;">
-          <span class="text-sm text-muted">Showing {{ (employeePage-1)*employeePageSize + 1 }} to {{ Math.min(employeePage*employeePageSize, filteredEmployees.length) }} of {{ filteredEmployees.length }} employees</span>
-          
-          <div class="pagination-actions" style="display: flex; gap: 8px; align-items: center;" *ngIf="employeeTotalPages > 1">
-            <button class="btn-icon" [disabled]="employeePage === 1" (click)="changeEmployeePage(-1)" style="padding: 4px 8px; border-radius: 6px; border: 1px solid #e2e8f0; background: white; cursor: pointer; color: #64748b;">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width: 14px; height: 14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
-            </button>
-            <span class="text-xs font-semibold" style="color: #0f172a; min-width: 40px; text-align: center;">{{ employeePage }} / {{ employeeTotalPages }}</span>
-            <button class="btn-icon" [disabled]="employeePage === employeeTotalPages" (click)="changeEmployeePage(1)" style="padding: 4px 8px; border-radius: 6px; border: 1px solid #e2e8f0; background: white; cursor: pointer; color: #64748b;">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width: 14px; height: 14px;"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div *ngIf="filteredEmployees.length === 0" class="empty-state">
-        <h3>No employees found</h3>
-        <p>Try adjusting your filters or search</p>
-      </div>
-    </section>
 
     <!-- ==================== APPROVALS TAB ==================== -->
     <section *ngIf="!isLoading && !errorMessage && activeTab === 'approvals'" class="tab-content animate-fade-in">
@@ -384,11 +335,11 @@
                 </div>
               </div>
               <div class="approval-actions">
-                <button class="btn-approve" (click)="approveRequisition(req)">
+                <button class="btn-approve" (click)="openJrConfirmModal(req, 'approve')">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
                   Approve
                 </button>
-                <button class="btn-reject" (click)="rejectRequisition(req)">
+                <button class="btn-reject" (click)="openJrConfirmModal(req, 'reject')">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
                   Reject
                 </button>
@@ -415,7 +366,7 @@
         </div>
         <div class="accordion-body" *ngIf="offerAccordionOpen">
           <div class="approval-list">
-            <div *ngFor="let offer of offeredCandidates" class="approval-card" style="cursor: pointer;" (click)="openOfferDetailModal(offer)">
+            <div *ngFor="let offer of offeredCandidates" class="approval-card">
               <div class="approval-card-top">
                 <div class="approval-info">
                   <div class="approval-title-row">
@@ -446,6 +397,16 @@
                   <span class="detail-value">{{ offer.date_of_joining }}</span>
                 </div>
               </div>
+              <div class="approval-actions">
+                <button class="btn-approve" (click)="openOfferConfirmModal(offer, 'approve')">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                  Approve & Send
+                </button>
+                <button class="btn-reject" (click)="openOfferConfirmModal(offer, 'reject')">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+                  Reject
+                </button>
+              </div>
             </div>
           </div>
           <div *ngIf="offeredCandidates.length === 0" class="empty-state success-empty" style="padding: 24px;">
@@ -458,9 +419,322 @@
 
     </section>
 
+    <!-- ==================== MY INTERVIEWS TAB ==================== -->
+    <section *ngIf="!isLoading && !errorMessage && activeTab === 'interviews'" class="tab-content animate-fade-in">
+
+      <!-- Interview Requests -->
+      <div class="tab-toolbar">
+        <h2 class="tab-title">Interview Requests</h2>
+        <span class="request-count">{{ myInterviewRequests.length }} pending request{{ myInterviewRequests.length !== 1 ? 's' : '' }}</span>
+      </div>
+
+      <div class="request-cards" *ngIf="myInterviewRequests.length > 0">
+        <div *ngFor="let req of myInterviewRequests" class="request-card">
+          <div class="request-card-header">
+            <div class="request-candidate-info">
+              <div class="candidate-avatar">{{ req.candidate_name?.charAt(0) || '?' }}</div>
+              <div>
+                <h3 class="candidate-name">{{ req.candidate_name || 'Unnamed Candidate' }}</h3>
+                <span class="candidate-email">{{ req.candidate_email }}</span>
+              </div>
+            </div>
+            <span class="round-badge">{{ req.round || 'Interview' }}</span>
+          </div>
+          <div class="delegated-by-badge" *ngIf="req.delegated_by">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" /></svg>
+            <span>Delegated by: <strong>{{ req.delegated_by }}</strong></span>
+          </div>
+          <div class="request-job-info">
+            <div class="job-info-row">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 0 0 .75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 0 0-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0 1 12 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 0 1-.673-.38m0 0A2.18 2.18 0 0 1 3 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 0 1 3.413-.387m7.5 0V5.25A2.25 2.25 0 0 0 13.5 3h-3a2.25 2.25 0 0 0-2.25 2.25v.894m7.5 0a48.667 48.667 0 0 0-7.5 0M12 12.75h.008v.008H12v-.008Z" /></svg>
+              <span class="job-title-text">{{ req.job_title }}</span>
+              <span class="id-badge small">{{ req.jr_id }}</span>
+            </div>
+            <div class="job-meta-row">
+              <span>{{ req.job_department }}</span>
+              <span class="dot-sep">·</span>
+              <span>{{ req.job_location }}</span>
+            </div>
+          </div>
+          <div class="request-schedule" *ngIf="req.scheduled_date">
+            <div class="schedule-item">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M2.25 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h15a2.25 2.25 0 0 1 2.25 2.25v11.25m-19.5 0A2.25 2.25 0 0 0 4.5 21h15a2.25 2.25 0 0 0 2.25-2.25m-19.5 0v-2.25h19.5v2.25" /></svg>
+              <span>{{ req.scheduled_date }}</span>
+            </div>
+            <div class="schedule-item" *ngIf="req.scheduled_time">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+              <span>{{ req.scheduled_time }}</span>
+            </div>
+          </div>
+          <div class="request-skills" *ngIf="req.candidate_skills">
+            <span class="skill-chip" *ngFor="let skill of req.candidate_skills.split(',')">{{ skill.trim() }}</span>
+          </div>
+          <div class="request-actions">
+            <button class="btn-accept" (click)="acceptInterviewRequest(req)">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+              Accept
+            </button>
+            <button class="btn-delegate" (click)="openDelegateModal(req)">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" /></svg>
+              Delegate
+            </button>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="myInterviewRequests.length === 0" class="empty-state success-empty" style="margin-bottom:24px;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="empty-icon"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+        <h3>No Pending Requests</h3>
+        <p>You have no interview requests at this time</p>
+      </div>
+
+      <!-- Accepted Interviews -->
+      <div class="tab-toolbar" style="margin-top: 24px;">
+        <h2 class="tab-title">My Interviews</h2>
+        <span class="request-count">{{ myAcceptedInterviews.length }} interview{{ myAcceptedInterviews.length !== 1 ? 's' : '' }}</span>
+      </div>
+
+      <div class="interview-cards" *ngIf="myAcceptedInterviews.length > 0">
+        <div *ngFor="let iv of myAcceptedInterviews" class="interview-card" (click)="openInterviewDetail(iv)">
+          <div class="interview-card-top">
+            <div class="interview-candidate">
+              <div class="candidate-avatar">{{ iv.candidate_name?.charAt(0) || '?' }}</div>
+              <div>
+                <h3 class="candidate-name">{{ iv.candidate_name }}</h3>
+                <span class="candidate-id-text">{{ iv.candidate_id }}</span>
+              </div>
+            </div>
+            <span class="status-badge" [ngClass]="getInterviewStatusClass(iv.interview_status)">{{ iv.interview_status }}</span>
+          </div>
+          <div class="interview-job-info">
+            <span class="job-title-text">{{ iv.job_title }}</span>
+            <span class="id-badge small">{{ iv.jr_id }}</span>
+            <span class="round-badge">{{ iv.round }}</span>
+          </div>
+          <div class="interview-schedule-row">
+            <div class="schedule-item" *ngIf="iv.scheduled_date">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M2.25 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h15a2.25 2.25 0 0 1 2.25 2.25v11.25m-19.5 0A2.25 2.25 0 0 0 4.5 21h15a2.25 2.25 0 0 0 2.25-2.25m-19.5 0v-2.25h19.5v2.25" /></svg>
+              <span>{{ iv.scheduled_date }}</span>
+            </div>
+            <div class="schedule-item" *ngIf="iv.scheduled_time">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+              <span>{{ iv.scheduled_time }}</span>
+            </div>
+            <a *ngIf="iv.meeting_link" [href]="iv.meeting_link" target="_blank" class="meeting-link-btn" (click)="$event.stopPropagation()">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
+              Join Meeting
+            </a>
+          </div>
+          <div class="interview-feedback-indicator" *ngIf="iv.feedback">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+            <span>Feedback submitted</span>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="myAcceptedInterviews.length === 0" class="empty-state">
+        <h3>No Interviews</h3>
+        <p>You haven't accepted any interview requests yet</p>
+      </div>
+    </section>
+
 
   </main>
 
+</div>
+
+<!-- Interview Detail Slide-out Panel -->
+<div class="detail-backdrop" *ngIf="selectedInterview" (click)="closeInterviewDetail()"></div>
+<aside class="detail-panel" [class.open]="selectedInterview">
+  <div class="detail-panel-header">
+    <div>
+      <span class="round-badge">{{ selectedInterview?.round }}</span>
+      <h2 class="detail-panel-title">Interview Details</h2>
+      <p class="detail-panel-subtitle">{{ selectedInterview?.job_title }} · {{ selectedInterview?.job_department }}</p>
+    </div>
+    <button class="detail-close-btn" (click)="closeInterviewDetail()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+    </button>
+  </div>
+
+  <!-- Schedule Info -->
+  <div class="detail-panel-section">
+    <h3 class="section-title">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M2.25 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h15a2.25 2.25 0 0 1 2.25 2.25v11.25m-19.5 0A2.25 2.25 0 0 0 4.5 21h15a2.25 2.25 0 0 0 2.25-2.25m-19.5 0v-2.25h19.5v2.25" /></svg>
+      Schedule
+    </h3>
+    <div class="detail-info-grid">
+      <div class="detail-chip">
+        <span class="detail-label">Date</span>
+        <span class="detail-value">{{ selectedInterview?.scheduled_date || 'TBD' }}</span>
+      </div>
+      <div class="detail-chip">
+        <span class="detail-label">Time</span>
+        <span class="detail-value">{{ selectedInterview?.scheduled_time || 'TBD' }}</span>
+      </div>
+      <div class="detail-chip">
+        <span class="detail-label">Status</span>
+        <span class="status-badge" [ngClass]="getInterviewStatusClass(selectedInterview?.interview_status || '')">{{ selectedInterview?.interview_status }}</span>
+      </div>
+    </div>
+    <a *ngIf="selectedInterview?.meeting_link" [href]="selectedInterview?.meeting_link" target="_blank" class="meeting-link-full">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" /></svg>
+      Join Meeting
+    </a>
+  </div>
+
+  <!-- Candidate Info -->
+  <div class="detail-panel-section">
+    <h3 class="section-title">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
+      Candidate
+    </h3>
+    <div class="candidate-detail-card">
+      <div class="candidate-detail-top">
+        <div class="candidate-avatar lg">{{ selectedInterview?.candidate_name?.charAt(0) || '?' }}</div>
+        <div>
+          <h4>{{ selectedInterview?.candidate_name }}</h4>
+          <span class="text-muted">{{ selectedInterview?.candidate_email }}</span>
+          <span class="id-badge small" style="margin-top:4px;display:inline-block">{{ selectedInterview?.candidate_id }}</span>
+        </div>
+      </div>
+      <div class="detail-info-grid" *ngIf="selectedInterview">
+        <div class="detail-chip">
+          <span class="detail-label">Experience</span>
+          <span class="detail-value">{{ selectedInterview.candidate_experience }} years</span>
+        </div>
+        <div class="detail-chip" *ngIf="selectedInterview.candidate_skills">
+          <span class="detail-label">Skills</span>
+          <span class="detail-value">{{ selectedInterview.candidate_skills }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Job Info -->
+  <div class="detail-panel-section">
+    <h3 class="section-title">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 0 0 .75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 0 0-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0 1 12 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 0 1-.673-.38m0 0A2.18 2.18 0 0 1 3 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 0 1 3.413-.387m7.5 0V5.25A2.25 2.25 0 0 0 13.5 3h-3a2.25 2.25 0 0 0-2.25 2.25v.894m7.5 0a48.667 48.667 0 0 0-7.5 0M12 12.75h.008v.008H12v-.008Z" /></svg>
+      Job Details
+    </h3>
+    <div class="detail-info-grid" *ngIf="selectedInterview">
+      <div class="detail-chip">
+        <span class="detail-label">Position</span>
+        <span class="detail-value">{{ selectedInterview.job_title }}</span>
+      </div>
+      <div class="detail-chip">
+        <span class="detail-label">Department</span>
+        <span class="detail-value">{{ selectedInterview.job_department }}</span>
+      </div>
+      <div class="detail-chip">
+        <span class="detail-label">Location</span>
+        <span class="detail-value">{{ selectedInterview.job_location }}</span>
+      </div>
+    </div>
+    <p class="job-desc-text" *ngIf="selectedInterview?.job_description">{{ selectedInterview?.job_description }}</p>
+    <div class="required-skills-row" *ngIf="selectedInterview?.required_skills">
+      <span class="detail-label">Required Skills</span>
+      <div class="skills-chips">
+        <span class="skill-chip" *ngFor="let skill of (selectedInterview?.required_skills || '').split(',')">{{ skill.trim() }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feedback Section -->
+  <div class="detail-panel-section">
+    <h3 class="section-title">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" /></svg>
+      Interview Feedback
+    </h3>
+    <div class="feedback-form">
+      <div class="rating-row">
+        <span class="detail-label">Rating</span>
+        <div class="star-rating">
+          <button *ngFor="let star of [1,2,3,4,5]" class="star-btn" [class.active]="feedbackRating >= star" (click)="setRating(star)">★</button>
+        </div>
+      </div>
+      <div class="feedback-params-grid">
+        <div class="form-group">
+          <label>Technical Skills</label>
+          <select [(ngModel)]="technicalSkills" class="form-select">
+            <option value="">Select…</option>
+            <option value="Excellent">Excellent</option>
+            <option value="Good">Good</option>
+            <option value="Average">Average</option>
+            <option value="Below Average">Below Average</option>
+            <option value="Poor">Poor</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Communication Skills</label>
+          <select [(ngModel)]="communicationSkills" class="form-select">
+            <option value="">Select…</option>
+            <option value="Excellent">Excellent</option>
+            <option value="Good">Good</option>
+            <option value="Average">Average</option>
+            <option value="Below Average">Below Average</option>
+            <option value="Poor">Poor</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Cultural Fit</label>
+          <select [(ngModel)]="culturalFit" class="form-select">
+            <option value="">Select…</option>
+            <option value="Excellent">Excellent</option>
+            <option value="Good">Good</option>
+            <option value="Average">Average</option>
+            <option value="Below Average">Below Average</option>
+            <option value="Poor">Poor</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Another Interview Required?</label>
+          <select [(ngModel)]="anotherInterviewRequired" class="form-select">
+            <option value="">Select…</option>
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+          </select>
+        </div>
+      </div>
+      <textarea class="feedback-textarea" [(ngModel)]="feedbackText" placeholder="Write your feedback about the candidate…" rows="4"></textarea>
+      <button class="btn-primary" (click)="submitFeedback()" [disabled]="isSubmittingFeedback || selectedInterview?.feedback">
+        {{ isSubmittingFeedback ? 'Submitting…' : (selectedInterview?.feedback ? 'Feedback Submitted' : 'Submit Feedback') }}
+      </button>
+    </div>
+  </div>
+</aside>
+
+<!-- Delegation Modal -->
+<div class="modal-backdrop" *ngIf="showDelegateModal" (click)="closeDelegateModal()"></div>
+<div class="delegate-modal" *ngIf="showDelegateModal">
+  <div class="modal-header">
+    <h3>Delegate Interview</h3>
+    <button class="detail-close-btn" (click)="closeDelegateModal()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="delegate-info" *ngIf="delegatingRequest">
+      <p><strong>Candidate:</strong> {{ delegatingRequest.candidate_name }}</p>
+      <p><strong>Position:</strong> {{ delegatingRequest.job_title }}</p>
+      <p><strong>Round:</strong> {{ delegatingRequest.round }}</p>
+    </div>
+    <div class="form-group">
+      <label>Delegate To</label>
+      <select [(ngModel)]="delegateEmployeeId" class="form-select">
+        <option value="">Select an employee…</option>
+        <option *ngFor="let emp of delegateEmployeeOptions" [value]="emp.employee_id">{{ emp.employee_name }} — {{ emp.department }}</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Reason</label>
+      <textarea [(ngModel)]="delegateReason" class="form-textarea" placeholder="Reason for delegating…" rows="3"></textarea>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn-cancel" (click)="closeDelegateModal()">Cancel</button>
+    <button class="btn-primary" (click)="confirmDelegate()" [disabled]="!delegateEmployeeId || isDelegating">
+      {{ isDelegating ? 'Delegating…' : 'Confirm Delegation' }}
+    </button>
+  </div>
 </div>
 
 <!-- Offer Detail Modal -->
@@ -555,6 +829,66 @@
   <div class="loader-content">
     <div class="loader-spinner"></div>
     <p class="loader-text">{{ approvalLoadingMessage }}</p>
+  </div>
+</div>
+
+<!-- Job Requisition Confirmation Modal -->
+<div class="confirm-modal-overlay" *ngIf="showJrConfirmModal">
+  <div class="confirm-modal-container">
+    <div class="confirm-modal-icon" [style.background]="jrConfirmAction === 'approve' ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' : 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)'">
+      <svg *ngIf="jrConfirmAction === 'approve'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg>
+      <svg *ngIf="jrConfirmAction === 'reject'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg>
+    </div>
+    <h3>{{ jrConfirmAction === 'approve' ? 'Approve' : 'Reject' }} Job Requisition?</h3>
+    <p>Are you sure you want to <strong>{{ jrConfirmAction }}</strong> the job requisition <strong>{{ selectedRequisition?.jr_id }}</strong> for <strong>{{ selectedRequisition?.job_title }}</strong>?</p>
+    <div class="confirm-modal-details">
+      <span><strong>Department:</strong> {{ selectedRequisition?.department }}</span>
+      <span><strong>Positions:</strong> {{ selectedRequisition?.no_of_positions }}</span>
+      <span><strong>Priority:</strong> {{ selectedRequisition?.priority }}</span>
+    </div>
+    <div class="confirm-modal-actions">
+      <button class="btn-confirm-cancel" (click)="closeJrConfirmModal()">Cancel</button>
+      <button
+        [ngClass]="jrConfirmAction === 'approve' ? 'btn-confirm-ok' : 'btn-confirm-reject'"
+        (click)="confirmJrAction()">
+        Yes, {{ jrConfirmAction === 'approve' ? 'Approve' : 'Reject' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Offer Letter Confirmation Modal -->
+<div class="confirm-modal-overlay" *ngIf="showOfferConfirmModal">
+  <div class="confirm-modal-container">
+    <div class="confirm-modal-icon" [style.background]="offerConfirmAction === 'approve' ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' : 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)'">
+      <svg *ngIf="offerConfirmAction === 'approve'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg>
+      <svg *ngIf="offerConfirmAction === 'reject'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg>
+    </div>
+    <h3>{{ offerConfirmAction === 'approve' ? 'Approve & Send Offer Letter?' : 'Reject Offer Letter?' }}</h3>
+    <p *ngIf="offerConfirmAction === 'approve'">Are you sure you want to <strong>approve</strong> the offer for <strong>{{ selectedOfferForConfirm?.candidate_name }}</strong> and send the offer letter via email with PDF attachment?</p>
+    <p *ngIf="offerConfirmAction === 'reject'">Are you sure you want to <strong>reject</strong> the offer for <strong>{{ selectedOfferForConfirm?.candidate_name }}</strong>?</p>
+    <div class="confirm-modal-details">
+      <span><strong>Candidate:</strong> {{ selectedOfferForConfirm?.candidate_name }}</span>
+      <span><strong>Position:</strong> {{ selectedOfferForConfirm?.job_title }}</span>
+      <span><strong>Salary:</strong> Rs. {{ selectedOfferForConfirm?.salary_offered }}/-</span>
+      <span><strong>Email:</strong> {{ selectedOfferForConfirm?.email || 'N/A' }}</span>
+    </div>
+    <div class="confirm-modal-actions">
+      <button class="btn-confirm-cancel" (click)="closeOfferConfirmModal()">Cancel</button>
+      <button
+        [ngClass]="offerConfirmAction === 'approve' ? 'btn-confirm-ok' : 'btn-confirm-reject'"
+        (click)="confirmOfferAction()">
+        Yes, {{ offerConfirmAction === 'approve' ? 'Approve & Send' : 'Reject' }}
+      </button>
+    </div>
   </div>
 </div>
 
