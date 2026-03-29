@@ -194,19 +194,7 @@ export class EmployeeDashboardService {
     end_date: string;
     reason: string;
   }): Promise<any> {
-    return this.hero.ajax('UpdateInterviewer_delegation', NAMESPACE, {
-      tuple: {
-        new: {
-          interviewer_delegation: {
-            original_interviewer_id: data.original_interviewer_id,
-            delegate_interviewer_id: data.delegate_interviewer_id,
-            start_date: data.start_date,
-            end_date: data.end_date,
-            reason: data.reason
-          }
-        }
-      }
-    });
+    return this.hero.createDelegation(data);
   }
 
   // ─── Get All Employees (for delegate picker) ───
