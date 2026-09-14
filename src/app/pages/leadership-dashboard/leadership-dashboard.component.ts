@@ -6,6 +6,7 @@ import { NgxEchartsDirective, provideEchartsCore } from 'ngx-echarts';
 import { EChartsOption } from 'echarts';
 import { LeadershipDashboardService } from './leadership-dashboard.service';
 import { jsPDF } from 'jspdf';
+import { CandidateDetailComponent } from '../../components/candidate-detail/candidate-detail.component';
 
 interface JobRequisition {
   jr_id: string;
@@ -86,7 +87,7 @@ interface InterviewRequest {
 @Component({
   selector: 'app-leadership-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, NgxEchartsDirective],
+  imports: [CommonModule, FormsModule, RouterLink, NgxEchartsDirective, CandidateDetailComponent],
   providers: [provideEchartsCore({ echarts: () => import('echarts') })],
   templateUrl: './leadership-dashboard.component.html',
   styleUrls: ['./leadership-dashboard.component.css']
@@ -127,6 +128,38 @@ export class LeadershipDashboardComponent implements OnInit {
   selectedJob: JobRequisition | null = null;
   jobApplicants: any[] = [];
   isLoadingApplicants = false;
+
+  // Shared Candidate Detail Modal
+  showCandidateDetail = false;
+  candidateDetailId = '';
+  candidateDetailJrId = '';
+
+  openCandidateDetail(candidateId: string, jrId?: string): void {
+    if (!candidateId) return;
+    this.candidateDetailId = candidateId;
+    this.candidateDetailJrId = jrId || '';
+    this.showCandidateDetail = true;
+  }
+
+  closeCandidateDetail(): void {
+    this.showCandidateDetail = false;
+    this.candidateDetailId = '';
+    this.candidateDetailJrId = '';
+  }
+
+  onCandidateDetailAction(event: { type: string; data: any }): void {
+    console.log('[LeadershipDashboard] Candidate detail action:', event);
+    if (!event) return;
+    if (event.type === 'approve_offer' && event.data?.extra) {
+      this.closeCandidateDetail();
+      const rawOffer = event.data.extra.raw || event.data.extra;
+      this.openOfferConfirmModal(rawOffer, 'approve');
+    } else if (event.type === 'suggest_changes_offer' && event.data?.extra) {
+      this.closeCandidateDetail();
+      const rawOffer = event.data.extra.raw || event.data.extra;
+      this.openOfferConfirmModal(rawOffer, 'suggest_changes');
+    }
+  }
 
   // Data arrays — populated from API
   jobs: JobRequisition[] = [];
@@ -1356,6 +1389,7 @@ export class LeadershipDashboardComponent implements OnInit {
   }
 
   logout() {
+    sessionStorage.clear();
     localStorage.clear();
     this.router.navigate(['/login']);
   }

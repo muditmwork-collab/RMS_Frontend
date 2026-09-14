@@ -23,6 +23,11 @@
         <span>Approvals</span>
         <span class="badge" *ngIf="(pendingApprovals.length + offeredCandidates.length) > 0">{{ pendingApprovals.length + offeredCandidates.length }}</span>
       </button>
+      <button class="nav-item" [class.active]="activeTab === 'candidates'" (click)="setTab('candidates')">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" /></svg>
+        <span>Candidates</span>
+        <span class="badge" *ngIf="candidates.length > 0">{{ candidates.length }}</span>
+      </button>
       <button class="nav-item" [class.active]="activeTab === 'interviews'" (click)="setTab('interviews')">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M2.25 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h15a2.25 2.25 0 0 1 2.25 2.25v11.25m-19.5 0A2.25 2.25 0 0 0 4.5 21h15a2.25 2.25 0 0 0 2.25-2.25m-19.5 0v-2.25h19.5v2.25M12 9.75h.008v.008H12V9.75Zm0 3h.008v.008H12v-.008Zm0 3h.008v.008H12v-.008Z" /></svg>
         <span>My Interviews</span>
@@ -92,7 +97,7 @@
           </div>
         </div>
 
-        <div class="kpi-card kpi-candidates">
+        <div class="kpi-card kpi-candidates" (click)="setTab('candidates')" style="cursor: pointer;">
           <div class="kpi-icon">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" /></svg>
           </div>
@@ -248,9 +253,9 @@
               <span class="detail-label">Positions</span>
               <span class="detail-value">{{ job.no_of_positions }}</span>
             </div>
-            <div class="detail-chip">
+            <div class="detail-chip" (click)="openJobDetail(job)" style="cursor: pointer;" title="Click to view applicants for this job">
               <span class="detail-label">Candidates</span>
-              <span class="detail-value">{{ getCandidateCountForJob(job.jr_id) }}</span>
+              <span class="detail-value" style="color: #00C4F0;">{{ getCandidateCountForJob(job.jr_id) }} ↗</span>
             </div>
           </div>
           <div class="job-card-footer">
@@ -384,7 +389,7 @@
                 <div class="approval-info">
                   <div class="approval-title-row">
                     <span class="id-badge">{{ offer.candidate_id }}</span>
-                    <h3 class="approval-job-title">{{ offer.candidate_name }}</h3>
+                    <h3 class="approval-job-title" (click)="openCandidateDetail(offer.candidate_id, offer.jr_id)" style="cursor: pointer; text-decoration: underline;" title="View Complete Candidate Profile">{{ offer.candidate_name }}</h3>
                     <span class="status-badge status-pending">{{ offer.application_status }}</span>
                   </div>
                   <p class="approval-desc" style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);">
@@ -447,7 +452,7 @@
             <div class="request-candidate-info">
               <div class="candidate-avatar">{{ (req.candidate_name || '').charAt(0) || '?' }}</div>
               <div>
-                <h3 class="candidate-name">{{ req.candidate_name || 'Unnamed Candidate' }}</h3>
+                <h3 class="candidate-name" (click)="openCandidateDetail(req.candidate_id, req.jr_id)" style="cursor: pointer; text-decoration: underline;" title="View Complete Candidate Profile">{{ req.candidate_name || 'Unnamed Candidate' }}</h3>
                 <span class="candidate-email">{{ req.candidate_email }}</span>
               </div>
             </div>
@@ -512,7 +517,7 @@
             <div class="interview-candidate">
               <div class="candidate-avatar">{{ (iv.candidate_name || '').charAt(0) || '?' }}</div>
               <div>
-                <h3 class="candidate-name">{{ iv.candidate_name }}</h3>
+                <h3 class="candidate-name" (click)="$event.stopPropagation(); openCandidateDetail(iv.candidate_id, iv.jr_id)" style="cursor: pointer; text-decoration: underline;" title="View Complete Candidate Profile">{{ iv.candidate_name }}</h3>
                 <span class="candidate-id-text">{{ iv.candidate_id }}</span>
               </div>
             </div>
@@ -549,6 +554,60 @@
       </div>
     </section>
 
+    <!-- ==================== CANDIDATES TAB ==================== -->
+    <section *ngIf="!isLoading && !errorMessage && activeTab === 'candidates'" class="tab-content animate-fade-in">
+      <div class="tab-toolbar">
+        <div>
+          <h2 class="tab-title">Candidate Directory</h2>
+          <p class="page-subtitle" style="margin: 0; font-size: 0.85rem; color: #64748B;">Browse, search, and review candidate profiles, qualifications, and past applications across all requisitions.</p>
+        </div>
+        <div class="search-box">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
+          <input type="text" [(ngModel)]="candidateSearch" placeholder="Search by name, email, skills, ID…" />
+        </div>
+      </div>
+
+      <div class="table-wrapper" *ngIf="filteredCandidates.length > 0; else noCandidates">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Candidate Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Experience</th>
+              <th>Key Skills</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of filteredCandidates">
+              <td><span class="id-badge">{{ c.candidate_id }}</span></td>
+              <td class="font-semibold">
+                <a (click)="openCandidateDetail(c.candidate_id, c.jr_id)" style="color: #0B2265; cursor: pointer; text-decoration: underline;" title="View Complete Profile">
+                  {{ c.name }}
+                </a>
+              </td>
+              <td>{{ c.email || '—' }}</td>
+              <td>{{ c.phone || '—' }}</td>
+              <td>{{ c.experience }} yrs</td>
+              <td style="max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ c.skills || '—' }}</td>
+              <td>
+                <button class="btn-approve" (click)="openCandidateDetail(c.candidate_id, c.jr_id)" style="padding: 6px 12px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">
+                  View Profile
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <ng-template #noCandidates>
+        <div class="empty-state">
+          <h3>No candidates found</h3>
+          <p>Try clearing or adjusting your search keyword.</p>
+        </div>
+      </ng-template>
+    </section>
 
   </main>
 
@@ -604,9 +663,14 @@
       <div class="candidate-detail-top">
         <div class="candidate-avatar lg">{{ (selectedInterview?.candidate_name || '').charAt(0) || '?' }}</div>
         <div>
-          <h4>{{ selectedInterview?.candidate_name }}</h4>
+          <h4 (click)="openCandidateDetail(selectedInterview?.candidate_id || '', selectedInterview?.jr_id)" style="cursor: pointer; text-decoration: underline; color: #0B2265;" title="View Complete Candidate Profile">{{ selectedInterview?.candidate_name }}</h4>
           <span class="text-muted">{{ selectedInterview?.candidate_email }}</span>
-          <span class="id-badge small" style="margin-top:4px;display:inline-block">{{ selectedInterview?.candidate_id }}</span>
+          <div style="display: flex; gap: 8px; align-items: center; margin-top: 6px;">
+            <span class="id-badge small">{{ selectedInterview?.candidate_id }}</span>
+            <button (click)="openCandidateDetail(selectedInterview?.candidate_id || '', selectedInterview?.jr_id)" style="background: #00C4F0; color: #0B2265; border: none; padding: 3px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; cursor: pointer;">
+              View Full Profile ↗
+            </button>
+          </div>
         </div>
       </div>
       <div class="detail-info-grid" *ngIf="selectedInterview">
@@ -938,3 +1002,72 @@
   <svg *ngIf="toastType === 'error'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="toast-icon"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
   <span>{{ toastMessage }}</span>
 </div>
+
+<!-- Job Applicants Modal -->
+<div class="confirm-modal-overlay animate-fade-in" *ngIf="selectedJob" (click)="closeJobDetail()">
+  <div class="confirm-modal-box" (click)="$event.stopPropagation()" style="max-width: 840px; width: 92%;">
+    <div class="confirm-modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <span class="id-badge">{{ selectedJob.jr_id }}</span>
+        <h3 style="margin: 4px 0 0 0; color: #0B2265;">{{ selectedJob.job_title }} — Applicants</h3>
+      </div>
+      <button (click)="closeJobDetail()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748B;">&times;</button>
+    </div>
+
+    <div *ngIf="isLoadingApplicants" style="text-align: center; padding: 30px;">
+      <p style="color: #64748B;">Loading applicants for this job...</p>
+    </div>
+
+    <div *ngIf="!isLoadingApplicants && jobApplicants.length === 0" class="empty-state" style="padding: 24px;">
+      <h3>No applicants yet</h3>
+      <p>No candidate applications recorded for {{ selectedJob.job_title }}</p>
+    </div>
+
+    <div *ngIf="!isLoadingApplicants && jobApplicants.length > 0" class="table-wrapper" style="margin-top: 16px;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Candidate</th>
+            <th>Email</th>
+            <th>Experience</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let app of jobApplicants">
+            <td class="font-semibold">
+              <a (click)="openCandidateDetail(app.candidate_id, selectedJob.jr_id)" style="color: #0B2265; cursor: pointer; text-decoration: underline;" title="View Complete Profile">
+                {{ app.name }}
+              </a>
+            </td>
+            <td>{{ app.email || '—' }}</td>
+            <td>{{ app.experience }} yrs</td>
+            <td><span class="status-badge" [ngClass]="getApplicationStatusClass(app.application_status)">{{ app.application_status }}</span></td>
+            <td>
+              <button (click)="openCandidateDetail(app.candidate_id, selectedJob.jr_id)" style="background: #00C4F0; color: #0B2265; border: none; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 0.78rem;">
+                View Profile ↗
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="confirm-modal-actions" style="margin-top: 16px;">
+      <button class="btn-confirm-cancel" (click)="closeJobDetail()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Shared Candidate Detail Modal -->
+<app-candidate-detail
+  *ngIf="showCandidateDetail"
+  [candidateId]="candidateDetailId"
+  [jrId]="candidateDetailJrId"
+  [role]="'Leadership'"
+  [visible]="showCandidateDetail"
+  (close)="closeCandidateDetail()"
+  (action)="onCandidateDetailAction($event)">
+</app-candidate-detail>
+

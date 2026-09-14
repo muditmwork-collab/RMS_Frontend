@@ -8,6 +8,7 @@ import { AuthService } from '../../auth.service';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Chart from 'chart.js/auto';
+import { CandidateDetailComponent } from '../../components/candidate-detail/candidate-detail.component';
 
 interface HrNotificationItem {
   id: string;
@@ -22,7 +23,7 @@ interface HrNotificationItem {
 @Component({
   selector: 'app-hr-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CandidateDetailComponent],
   templateUrl: './hr-panel.component.html',
   styleUrls: ['./hr-panel.component.css']
 })
@@ -37,6 +38,62 @@ export class HrPanelComponent implements OnInit, OnDestroy {
   notifications: HrNotificationItem[] = [];
   private notificationPollingHandle: any = null;
   private readonly notificationPollMs = 5000;
+
+  // Shared Candidate Detail Modal
+  showCandidateDetail = false;
+  candidateDetailId = '';
+  candidateDetailJrId = '';
+
+  openCandidateDetail(candidateId: string, jrId?: string): void {
+    if (!candidateId) return;
+    this.candidateDetailId = candidateId;
+    this.candidateDetailJrId = jrId || '';
+    this.showCandidateDetail = true;
+  }
+
+  closeCandidateDetail(): void {
+    this.showCandidateDetail = false;
+    this.candidateDetailId = '';
+    this.candidateDetailJrId = '';
+  }
+
+  onCandidateDetailAction(event: { type: string; data: any }): void {
+    console.log('[HrPanel] Candidate detail action:', event);
+    if (!event) return;
+    switch (event.type) {
+      case 'schedule':
+        this.closeCandidateDetail();
+        this.activeTab = 'Interviews';
+        this.interviewActiveSubTab = 'all';
+        if (event.data?.candidateId) {
+          this.selectedCandidateIds = [event.data.candidateId];
+        }
+        this.openAddPanelModalWithInterview();
+        break;
+      case 'move_stage':
+        this.closeCandidateDetail();
+        this.activeTab = 'Candidate Pipeline';
+        break;
+      case 'reject':
+        if (confirm(`Are you sure you want to reject ${event.data?.candidateName || 'this candidate'}?`)) {
+          if (event.data?.profile?.applications?.length > 0) {
+            const app = event.data.profile.applications[0];
+            this.heroService.updateCandidateApplication(app.raw?.application || app.raw || app, {
+              application_status: 'REJECTED',
+              stage: 'rejected'
+            }).then(() => {
+              this.showToast('Candidate marked as rejected', 'success');
+              this.closeCandidateDetail();
+              this.loadCandidates();
+            }).catch((e: any) => {
+              console.error('Failed to reject candidate:', e);
+              this.showToast('Failed to reject candidate', 'error');
+            });
+          }
+        }
+        break;
+    }
+  }
 
 
   // --- Job Requisition Form Model ---
@@ -543,31 +600,25 @@ export class HrPanelComponent implements OnInit, OnDestroy {
   }
 
 
+  // --- Streamlined Sub-tab States ---
+  interviewActiveSubTab: 'all' | 'requests' | 'my-interviews' = 'all';
+  isCreatingRequisition = false;
+
   sidebarSections = [
     {
       title: 'Recruitment',
       items: [
         { name: 'Dashboard', icon: 'fas fa-th-large' },
-        { name: 'Job Requisition', icon: 'fas fa-briefcase' },
-        { name: 'Jobs', icon: 'fas fa-list' },
-        { name: 'Interview Panel', icon: 'fas fa-user-tie' },
-        { name: 'Interview Requests', icon: 'fas fa-envelope-open-text' },
-        { name: 'My Interviews', icon: 'fas fa-calendar-check' },
-        { name: 'Scheduling', icon: 'far fa-calendar-alt' },
+        { name: 'Jobs', icon: 'fas fa-briefcase' },
         { name: 'Candidate Pipeline', icon: 'fas fa-users' },
+        { name: 'Interviews', icon: 'fas fa-calendar-alt' },
         { name: 'Offer Tracker', icon: 'fas fa-file-signature' }
       ]
     },
     {
-      title: 'Screening & Evaluation',
+      title: 'Screening & Insights',
       items: [
         { name: 'AI Screening', icon: 'fas fa-robot' },
-        { name: 'Candidate Comparison', icon: 'fas fa-balance-scale' }
-      ]
-    },
-    {
-      title: 'Insights & Network',
-      items: [
         { name: 'Referral Tracking', icon: 'fas fa-project-diagram' }
       ]
     }
@@ -1486,6 +1537,27 @@ export class HrPanelComponent implements OnInit, OnDestroy {
     }
   }
 
+  navigateToOpenPositions(): void {
+    this.isCreatingRequisition = false;
+    this.jobsSearchQuery = '';
+    this.onJobsSearchChange();
+    this.setActiveTab('Jobs');
+  }
+
+  navigateToActiveCandidates(): void {
+    this.pipelineSearchQuery = '';
+    this.selectedPipelineSkillFilters.clear();
+    this.onPipelineSearchChange();
+    this.setActiveTab('Candidate Pipeline');
+  }
+
+  navigateToPendingApprovals(): void {
+    this.isCreatingRequisition = false;
+    this.jobsSearchQuery = 'PENDING';
+    this.onJobsSearchChange();
+    this.setActiveTab('Jobs');
+  }
+
   toggleSidebar() {
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
   }
@@ -1553,6 +1625,7 @@ export class HrPanelComponent implements OnInit, OnDestroy {
       closing_date: ''
     };
     this.editingJobId = null;
+    this.isCreatingRequisition = false;
   }
 
   // --- Candidate Pipeline ---
@@ -2755,9 +2828,12 @@ export class HrPanelComponent implements OnInit, OnDestroy {
   }
 
   scheduleFromAiScreening(candidate: any) {
-    this.activeTab = 'Scheduling';
-    this.teamsMeeting.subject = `Interview with ${candidate.name} - ${candidate.role}`;
-    this.teamsMeeting.attendees = candidate.email;
+    this.activeTab = 'Interviews';
+    this.interviewActiveSubTab = 'all';
+    if (candidate?.candidate_id) {
+      this.selectedCandidateIds = [candidate.candidate_id];
+    }
+    this.openAddPanelModalWithInterview();
     this.showToast(`Scheduling interview for ${candidate.name}`, 'success');
   }
 
@@ -3656,7 +3732,8 @@ export class HrPanelComponent implements OnInit, OnDestroy {
   editJob(job: any) {
     if (!job.raw) return;
     this.editingJobId = job.id;
-    this.activeTab = 'Job Requisition';
+    this.activeTab = 'Jobs';
+    this.isCreatingRequisition = true;
     const ext = (field: any) => field?.text || field?.['#text'] || field || '';
     this.requisition = {
       job_title: ext(job.raw.job_title),

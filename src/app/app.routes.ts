@@ -37,7 +37,7 @@ export const routes: Routes = [
       { path: 'selected-jobs', component: SelectedJobsComponent }
     ]
   },
-  { path: 'leadership-dashboard', component: LeadershipDashboardComponent },
-  { path: 'employee-dashboard', component: EmployeeDashboardComponent },
+  { path: 'leadership-dashboard', component: LeadershipDashboardComponent, canActivate: [RoleGuard], data: { roles: ['Leadership'] } },
+  { path: 'employee-dashboard', component: EmployeeDashboardComponent, canActivate: [RoleGuard], data: { roles: ['Employee'] } },
   { path: '**', redirectTo: '' }
 ];

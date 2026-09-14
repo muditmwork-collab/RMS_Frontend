@@ -1,0 +1,539 @@
+<!-- Modal Backdrop -->
+<div class="modal-backdrop" *ngIf="visible" (click)="closeModal()">
+  <!-- Modal Container -->
+  <div class="modal-container" (click)="$event.stopPropagation()">
+
+    <!-- Toast Notification -->
+    <div *ngIf="showToast" class="detail-toast" [ngClass]="'toast-' + toastType">
+      <span>{{ toastMessage }}</span>
+    </div>
+
+    <!-- Header -->
+    <header class="detail-header">
+      <div class="header-left">
+        <div class="candidate-avatar">
+          {{ getInitials(profile?.name || '') }}
+        </div>
+        <div class="header-info">
+          <div class="name-row">
+            <h2 class="candidate-name">{{ profile?.name || 'Candidate Details' }}</h2>
+            <span class="id-badge">{{ candidateId }}</span>
+            <span *ngIf="profile?.referral" class="badge-referral">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="icon-sm">
+                <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/>
+              </svg>
+              Referral: {{ profile?.referral?.referringEmployeeName }}
+            </span>
+          </div>
+
+          <div class="meta-row">
+            <span *ngIf="profile?.email" class="meta-item">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon-sm">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+              </svg>
+              <a [href]="'mailto:' + profile?.email" class="meta-link">{{ profile?.email }}</a>
+            </span>
+
+            <span *ngIf="profile?.phone" class="meta-item">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon-sm">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H3.75A2.25 2.25 0 0 0 1.5 4.5v2.25Z" />
+              </svg>
+              <a [href]="'tel:' + profile?.phone" class="meta-link">{{ profile?.phone }}</a>
+            </span>
+
+            <span *ngIf="profile?.experience" class="meta-item">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon-sm">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 0 0 .75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 0 0-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0 1 12 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 0 1-.673-.38m0 0A2.18 2.18 0 0 1 3 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 0 1 3.413-.387m7.5 0V5.25A2.25 2.25 0 0 0 13.5 3h-3a2.25 2.25 0 0 0-2.25 2.25v.894m7.5 0a48.667 48.667 0 0 0-7.5 0M12 12.75h.008v.008H12v-.008Z" />
+              </svg>
+              {{ profile?.experience }} yrs exp
+            </span>
+
+            <span *ngIf="profile?.linkedinUrl" class="meta-item">
+              <a [href]="profile?.linkedinUrl" target="_blank" rel="noopener noreferrer" class="meta-link linkedin-link">
+                LinkedIn ↗
+              </a>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <!-- View Resume Button -->
+        <button
+          *ngIf="profile?.resumePath"
+          class="btn-resume"
+          [disabled]="isDownloadingResume"
+          (click)="viewResume()">
+          <svg *ngIf="!isDownloadingResume" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="icon-sm">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+          </svg>
+          <span *ngIf="!isDownloadingResume">View Resume</span>
+          <span *ngIf="isDownloadingResume" class="spinner-small"></span>
+        </button>
+
+        <!-- Close Button -->
+        <button class="btn-close" (click)="closeModal()" aria-label="Close modal">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-md">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="detail-tabs">
+      <button class="tab-btn" [class.active]="activeTab === 'overview'" (click)="setTab('overview')">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon-tab">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+        </svg>
+        Overview
+      </button>
+
+      <button class="tab-btn" [class.active]="activeTab === 'applications'" (click)="setTab('applications')">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon-tab">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 0 0 .75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 0 0-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0 1 12 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 0 1-.673-.38m0 0A2.18 2.18 0 0 1 3 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 0 1 3.413-.387m7.5 0V5.25A2.25 2.25 0 0 0 13.5 3h-3a2.25 2.25 0 0 0-2.25 2.25v.894m7.5 0a48.667 48.667 0 0 0-7.5 0M12 12.75h.008v.008H12v-.008Z" />
+        </svg>
+        Applications
+        <span class="tab-badge">{{ profile?.applications?.length || 0 }}</span>
+      </button>
+
+      <button class="tab-btn" [class.active]="activeTab === 'interviews'" (click)="setTab('interviews')">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon-tab">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M2.25 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h15a2.25 2.25 0 0 1 2.25 2.25v11.25m-19.5 0A2.25 2.25 0 0 0 4.5 21h15a2.25 2.25 0 0 0 2.25-2.25m-19.5 0v-2.25h19.5v2.25M12 9.75h.008v.008H12V9.75Zm0 3h.008v.008H12v-.008Zm0 3h.008v.008H12v-.008Z" />
+        </svg>
+        Interviews & Feedback
+        <span class="tab-badge">{{ profile?.interviewHistory?.length || 0 }}</span>
+      </button>
+
+      <button class="tab-btn" [class.active]="activeTab === 'offers'" (click)="setTab('offers')">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon-tab">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+        Offers
+        <span class="tab-badge">{{ profile?.offers?.length || 0 }}</span>
+      </button>
+
+      <button class="tab-btn" [class.active]="activeTab === 'notes'" (click)="setTab('notes')">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon-tab">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+        </svg>
+        Remarks & Notes
+      </button>
+    </nav>
+
+    <!-- Body / Content Area -->
+    <main class="detail-body">
+      <!-- Loading State -->
+      <div *ngIf="loading" class="state-container">
+        <div class="spinner-large"></div>
+        <p class="state-text">Loading candidate profile and history...</p>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="!loading && error" class="state-container state-error">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="state-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+        </svg>
+        <p class="state-text">{{ error }}</p>
+        <button class="btn-retry" (click)="loadProfile()">Retry</button>
+      </div>
+
+      <!-- ==================== TAB 1: OVERVIEW ==================== -->
+      <div *ngIf="!loading && !error && activeTab === 'overview'" class="tab-pane animate-fade">
+        <div class="grid-layout">
+          <!-- Primary Details Column -->
+          <div class="grid-main">
+            <!-- Skills Card -->
+            <div class="detail-card">
+              <h3 class="card-title">Technical Skills & Expertise</h3>
+              <div class="skills-wrap" *ngIf="profile?.skills?.length; else noSkills">
+                <span class="skill-pill" *ngFor="let s of profile?.skills">{{ s }}</span>
+              </div>
+              <ng-template #noSkills>
+                <p class="text-muted">No skills listed for this candidate.</p>
+              </ng-template>
+            </div>
+
+            <!-- Professional Summary & Education -->
+            <div class="detail-card">
+              <h3 class="card-title">Education & Background</h3>
+              <div class="info-grid">
+                <div class="info-cell">
+                  <span class="info-label">Education / Degree</span>
+                  <span class="info-val">{{ profile?.education || 'Not specified' }}</span>
+                </div>
+                <div class="info-cell">
+                  <span class="info-label">Total Experience</span>
+                  <span class="info-val">{{ profile?.experience ? profile?.experience + ' Years' : 'Not specified' }}</span>
+                </div>
+                <div class="info-cell">
+                  <span class="info-label">Current / Last Role</span>
+                  <span class="info-val">{{ profile?.currentRole || 'Not specified' }}</span>
+                </div>
+                <div class="info-cell">
+                  <span class="info-label">Department</span>
+                  <span class="info-val">{{ profile?.department || 'Not specified' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Secondary / Sidebar Column -->
+          <div class="grid-side">
+            <!-- Referral Details -->
+            <div class="detail-card referral-card" *ngIf="profile?.referral">
+              <div class="card-header-badge">
+                <h3 class="card-title" style="color: #7C3AED;">Employee Referral</h3>
+                <span class="badge-tag tag-purple">Active</span>
+              </div>
+              <div class="referral-details">
+                <div class="ref-row">
+                  <span class="ref-label">Referred By:</span>
+                  <strong class="ref-val">{{ profile?.referral?.referringEmployeeName }}</strong>
+                </div>
+                <div class="ref-row">
+                  <span class="ref-label">Employee ID:</span>
+                  <span class="ref-val">{{ profile?.referral?.referringEmployeeId }}</span>
+                </div>
+                <div class="ref-row" *ngIf="profile?.referral?.relationship">
+                  <span class="ref-label">Relationship:</span>
+                  <span class="ref-val">{{ profile?.referral?.relationship }}</span>
+                </div>
+                <div class="ref-notes" *ngIf="profile?.referral?.notes">
+                  <span class="ref-label">Referral Notes:</span>
+                  <p class="ref-quote">"{{ profile?.referral?.notes }}"</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Profile Info Card -->
+            <div class="detail-card">
+              <h3 class="card-title">Candidate Summary</h3>
+              <div class="meta-list">
+                <div class="meta-row-item">
+                  <span class="meta-k">Source:</span>
+                  <span class="meta-v">{{ profile?.source || 'Direct Application' }}</span>
+                </div>
+                <div class="meta-row-item">
+                  <span class="meta-k">Total Applications:</span>
+                  <span class="meta-v font-bold">{{ profile?.applications?.length || 0 }}</span>
+                </div>
+                <div class="meta-row-item">
+                  <span class="meta-k">Total Interviews:</span>
+                  <span class="meta-v font-bold">{{ profile?.interviewHistory?.length || 0 }}</span>
+                </div>
+                <div class="meta-row-item">
+                  <span class="meta-k">Offers Received:</span>
+                  <span class="meta-v font-bold">{{ profile?.offers?.length || 0 }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== TAB 2: APPLICATIONS ==================== -->
+      <div *ngIf="!loading && !error && activeTab === 'applications'" class="tab-pane animate-fade">
+        <div class="section-top">
+          <h3 class="section-heading">All Job Applications ({{ profile?.applications?.length || 0 }})</h3>
+          <p class="section-sub">Candidate's application history across all open and past requisitions.</p>
+        </div>
+
+        <div *ngIf="profile?.applications?.length; else noApps" class="table-responsive">
+          <table class="detail-table">
+            <thead>
+              <tr>
+                <th>JR ID</th>
+                <th>Job Title</th>
+                <th>Department</th>
+                <th>Stage / Status</th>
+                <th>Applied Date</th>
+                <th>Salary Expectation</th>
+                <th>Location</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let app of profile?.applications" [class.highlight-row]="jrId && app.jrId === jrId">
+                <td>
+                  <span class="id-badge">{{ app.jrId }}</span>
+                </td>
+                <td class="job-title-cell">
+                  <strong>{{ app.jobTitle }}</strong>
+                  <span *ngIf="jrId && app.jrId === jrId" class="current-badge">Current Selection</span>
+                </td>
+                <td>{{ app.department || '—' }}</td>
+                <td>
+                  <span class="status-badge" [ngClass]="getStatusClass(app.applicationStatus)">
+                    {{ app.applicationStatus }}
+                  </span>
+                </td>
+                <td>{{ app.appliedDate || '—' }}</td>
+                <td>{{ app.expectedSalary }}</td>
+                <td>{{ app.preferredLocation }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <ng-template #noApps>
+          <div class="empty-box">
+            <p>No job application records found for this candidate.</p>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- ==================== TAB 3: INTERVIEWS & FEEDBACK ==================== -->
+      <div *ngIf="!loading && !error && activeTab === 'interviews'" class="tab-pane animate-fade">
+        <div class="section-top">
+          <h3 class="section-heading">Interview Timeline & Panelist Feedback</h3>
+          <p class="section-sub">Detailed evaluations, ratings, and feedback from all evaluation rounds.</p>
+        </div>
+
+        <div *ngIf="profile?.interviewHistory?.length; else noInterviews" class="timeline-container">
+          <div *ngFor="let round of profile?.interviewHistory; let i = index" class="timeline-card">
+            <!-- Timeline header -->
+            <div class="round-header">
+              <div class="round-meta">
+                <span class="round-pill">{{ round.round }}</span>
+                <span class="round-job">{{ round.jobTitle }} ({{ round.jrId }})</span>
+                <span class="round-date" *ngIf="round.scheduledDate">
+                  📅 {{ round.scheduledDate }} {{ round.scheduledTime }}
+                </span>
+              </div>
+              <div class="round-badges">
+                <span class="status-badge" [ngClass]="getStatusClass(round.status)">{{ round.status }}</span>
+                <span class="score-badge" *ngIf="round.avgScore !== 'Pending'">
+                  ★ {{ round.avgScore }} / 5.0
+                </span>
+              </div>
+            </div>
+
+            <!-- Meeting link if present -->
+            <div *ngIf="round.meetingLink" class="meeting-link-row">
+              <a [href]="round.meetingLink" target="_blank" rel="noopener noreferrer" class="link-btn">
+                🔗 Join Interview Meeting
+              </a>
+            </div>
+
+            <!-- Panelists list -->
+            <div class="panelists-section">
+              <h4 class="panel-heading">Interviewer Evaluations ({{ round.panels.length }})</h4>
+              <div *ngIf="round.panels.length; else noPanels" class="panel-grid">
+                <div *ngFor="let panel of round.panels" class="panel-card">
+                  <div class="panel-top">
+                    <div class="interviewer-info">
+                      <div class="avatar-sm">{{ getInitials(panel.interviewerName) }}</div>
+                      <div>
+                        <strong class="interviewer-name">{{ panel.interviewerName }}</strong>
+                        <span class="interviewer-id" *ngIf="panel.interviewerId">({{ panel.interviewerId }})</span>
+                      </div>
+                    </div>
+                    <div class="panel-rating">
+                      <span *ngIf="panel.rating > 0" class="stars">
+                        <span *ngFor="let star of getStarArray(panel.rating)">★</span>
+                        <strong class="rating-number">({{ panel.rating }}/5)</strong>
+                      </span>
+                      <span *ngIf="panel.rating <= 0" class="text-muted">Pending Rating</span>
+                    </div>
+                  </div>
+
+                  <!-- Competency scores -->
+                  <div class="competencies-grid" *ngIf="panel.technicalSkills || panel.communicationSkills || panel.culturalFit">
+                    <div class="comp-item" *ngIf="panel.technicalSkills">
+                      <span class="comp-label">Technical</span>
+                      <span class="comp-badge badge-blue">{{ panel.technicalSkills }}</span>
+                    </div>
+                    <div class="comp-item" *ngIf="panel.communicationSkills">
+                      <span class="comp-label">Communication</span>
+                      <span class="comp-badge badge-indigo">{{ panel.communicationSkills }}</span>
+                    </div>
+                    <div class="comp-item" *ngIf="panel.culturalFit">
+                      <span class="comp-label">Cultural Fit</span>
+                      <span class="comp-badge badge-amber">{{ panel.culturalFit }}</span>
+                    </div>
+                    <div class="comp-item" *ngIf="panel.anotherInterviewRequired">
+                      <span class="comp-label">Follow-up Req.</span>
+                      <span class="comp-badge" [ngClass]="panel.anotherInterviewRequired === 'Yes' ? 'badge-danger' : 'badge-success'">
+                        {{ panel.anotherInterviewRequired }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Feedback note -->
+                  <div class="feedback-text">
+                    <p class="quote">"{{ panel.feedback }}"</p>
+                  </div>
+                </div>
+              </div>
+              <ng-template #noPanels>
+                <p class="text-muted">No panel feedback submitted for this round yet.</p>
+              </ng-template>
+            </div>
+          </div>
+        </div>
+        <ng-template #noInterviews>
+          <div class="empty-box">
+            <p>No interview rounds recorded for this candidate.</p>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- ==================== TAB 4: OFFERS ==================== -->
+      <div *ngIf="!loading && !error && activeTab === 'offers'" class="tab-pane animate-fade">
+        <div class="section-top">
+          <h3 class="section-heading">Job Offers ({{ profile?.offers?.length || 0 }})</h3>
+          <p class="section-sub">Offer details, compensation packages, and leadership approval status.</p>
+        </div>
+
+        <div *ngIf="profile?.offers?.length; else noOffers" class="offers-grid">
+          <div *ngFor="let offer of profile?.offers" class="offer-card">
+            <div class="offer-header">
+              <div>
+                <span class="id-badge">{{ offer.jrId }}</span>
+                <h4 class="offer-title">{{ offer.jobTitle }}</h4>
+              </div>
+              <span class="status-badge" [ngClass]="getStatusClass(offer.approvalStatus)">
+                {{ offer.approvalStatus }}
+              </span>
+            </div>
+
+            <div class="offer-specs">
+              <div class="spec-box">
+                <span class="spec-label">Compensation / CTC</span>
+                <strong class="spec-val text-primary">₹ {{ offer.salaryOffered }}</strong>
+              </div>
+              <div class="spec-box">
+                <span class="spec-label">Date of Joining</span>
+                <strong class="spec-val">{{ offer.dateOfJoining || 'To be decided' }}</strong>
+              </div>
+              <div class="spec-box">
+                <span class="spec-label">Offer Date</span>
+                <span class="spec-val">{{ offer.offerDate || '—' }}</span>
+              </div>
+            </div>
+
+            <!-- Leadership Remarks on Offer -->
+            <div *ngIf="offer.leadershipRemarks" class="offer-remarks">
+              <span class="remarks-label">Leadership Remarks:</span>
+              <p class="remarks-text">"{{ offer.leadershipRemarks }}"</p>
+            </div>
+
+            <!-- Leadership Approval Actions (if role is Leadership) -->
+            <div *ngIf="role === 'Leadership' && (offer.approvalStatus === 'PENDING' || offer.approvalStatus === 'Pending')" class="offer-actions-bar">
+              <button class="btn-approve" (click)="triggerAction('approve_offer', offer)">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-sm">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                </svg>
+                Approve Offer
+              </button>
+              <button class="btn-suggest" (click)="triggerAction('suggest_changes_offer', offer)">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-sm">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                </svg>
+                Suggest Changes
+              </button>
+            </div>
+          </div>
+        </div>
+        <ng-template #noOffers>
+          <div class="empty-box">
+            <p>No job offers have been generated for this candidate yet.</p>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- ==================== TAB 5: NOTES & REMARKS ==================== -->
+      <div *ngIf="!loading && !error && activeTab === 'notes'" class="tab-pane animate-fade">
+        <div class="section-top">
+          <h3 class="section-heading">Evaluation Remarks & Historical Notes</h3>
+          <p class="section-sub">Consolidated feedback from interviewers, leadership, and HR team.</p>
+        </div>
+
+        <div class="notes-container">
+          <!-- Leadership Remarks -->
+          <div class="notes-section">
+            <h4 class="notes-subhead">Leadership Feedback & Notes</h4>
+            <div *ngIf="profile?.offers?.length; else noLeadershipNotes">
+              <div *ngFor="let off of profile?.offers" class="note-card">
+                <div class="note-top">
+                  <span class="note-role">Leadership Review — {{ off.jobTitle }}</span>
+                  <span class="status-badge" [ngClass]="getStatusClass(off.approvalStatus)">{{ off.approvalStatus }}</span>
+                </div>
+                <p class="note-body" *ngIf="off.leadershipRemarks">"{{ off.leadershipRemarks }}"</p>
+                <p class="text-muted" *ngIf="!off.leadershipRemarks">No written remarks provided for this offer review.</p>
+              </div>
+            </div>
+            <ng-template #noLeadershipNotes>
+              <p class="text-muted">No leadership reviews found.</p>
+            </ng-template>
+          </div>
+
+          <!-- Referral Remarks -->
+          <div class="notes-section" *ngIf="profile?.referral?.notes">
+            <h4 class="notes-subhead">Employee Referral Notes</h4>
+            <div class="note-card note-referral">
+              <div class="note-top">
+                <span class="note-role">Referral from {{ profile?.referral?.referringEmployeeName }}</span>
+              </div>
+              <p class="note-body">"{{ profile?.referral?.notes }}"</p>
+            </div>
+          </div>
+
+          <!-- Interview Summary Notes -->
+          <div class="notes-section">
+            <h4 class="notes-subhead">Panel Interviewer Comments</h4>
+            <div *ngFor="let round of profile?.interviewHistory" class="round-notes-block">
+              <h5 class="round-title-sm">{{ round.round }} — {{ round.jobTitle }}</h5>
+              <div *ngFor="let p of round.panels" class="note-card">
+                <div class="note-top">
+                  <strong>{{ p.interviewerName }}</strong>
+                  <span *ngIf="p.rating" class="stars">★ {{ p.rating }} / 5</span>
+                </div>
+                <p class="note-body">"{{ p.feedback }}"</p>
+              </div>
+            </div>
+            <div *ngIf="!profile?.interviewHistory?.length" class="text-muted">
+              No interview comments recorded.
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer with Role-Based Actions -->
+    <footer class="detail-footer">
+      <div class="footer-left">
+        <span class="role-indicator">Viewing as: <strong>{{ role }}</strong></span>
+      </div>
+
+      <div class="footer-actions">
+        <!-- HR Actions -->
+        <ng-container *ngIf="role === 'HR'">
+          <button class="btn-action btn-schedule" (click)="triggerAction('schedule')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="icon-sm">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M2.25 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h15a2.25 2.25 0 0 1 2.25 2.25v11.25m-19.5 0A2.25 2.25 0 0 0 4.5 21h15a2.25 2.25 0 0 0 2.25-2.25m-19.5 0v-2.25h19.5v2.25" />
+            </svg>
+            Schedule Interview
+          </button>
+
+          <button class="btn-action btn-move" (click)="triggerAction('move_stage')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="icon-sm">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+            </svg>
+            Move Stage
+          </button>
+
+          <button class="btn-action btn-danger" (click)="triggerAction('reject')">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="icon-sm">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+            Reject Candidate
+          </button>
+        </ng-container>
+
+        <button class="btn-action btn-secondary" (click)="closeModal()">
+          Close
+        </button>
+      </div>
+    </footer>
+  </div>
+</div>
